@@ -15,7 +15,6 @@ rm(list=ls()) # remove all objects
 library(tidyverse)
 library(dplyr)
 library(BayesFactor)
-library(filor)
 library(ggplot2)
 library(stringr)
 source("05.functions/progress.R")
@@ -25,7 +24,7 @@ source("05.functions/progress.R")
 es <- c(0.2, 0.5, 0.8)
 sample_size <- c(10, 30, 50, 100, 200)
 bf_threshold = 6
-nsim <- 500
+nsim <- 10000
 
 # simulation ----------------------------------------------------------------
 
