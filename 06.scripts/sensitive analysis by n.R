@@ -21,8 +21,8 @@ source("05.functions/progress.R")
 
 # parameters ----------------------------------------------------------------
 
-es <- seq(0.2, 0.6, 0.05)
-sample_size <- c(40, 50, 60, 80, 90, 100)
+es <- seq(0.3, 0.7, 0.05)
+sample_size <- c(30, 40, 50, 60)
 bf_threshold = 6
 nsim <- 10000
 
@@ -57,7 +57,8 @@ sim %>%
   geom_point(size = 3) +
   geom_line() +
   geom_hline(yintercept = 0.80, linetype="dashed", color = "gray")+
-  geom_vline(xintercept = 0.4, linetype="dashed", color = "gray")+
+  geom_vline(xintercept = 0.654, linetype="dashed", color = "gray")+
+  geom_vline(xintercept = 0.478, linetype="dashed", color = "gray")+
   facet_wrap(~type)+
   ggtitle("sensitive analysis")+
   xlab("effect size") + 
@@ -68,7 +69,7 @@ sim %>%
         axis.line = element_line(colour = "black"),
         strip.text.y = element_text(size = 20))
 
- ggsave("07.figures/sanalysis_n50.tiff", units="in",  dpi=200, compression = 'lzw')
+ ggsave("07.figures/sanalysis.tiff", units="in",  dpi=200, compression = 'lzw')
 
 
 
