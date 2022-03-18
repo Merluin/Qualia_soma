@@ -39,7 +39,7 @@ nmin          <-    20 #initial sample size
 
 Boundary      <-    6 # 6 is required by cortex
 
-rep           <-    1000
+rep           <-    10000
 Verbose       <-    TRUE 
 Cores         <-    11
 Stepsize      <-    10 #The number of observations added to the sample in each step of a sequential process
@@ -49,11 +49,11 @@ Stepsize      <-    10 #The number of observations added to the sample in each s
 # SIMULATION https://rawgit.com/nicebread/BFDA/master/package/doc/BFDA_manual.html
 
 sim.H1 <- BFDA.sim(expected.ES = ESH1, type = Type, prior = Prior, design = Design,
-                   n.max = nmax, alternative = Alternative,boundary = Boundary, 
+                   n.max = nmax, alternative = Alternative,boundary = influence(), 
                    B = rep,verbose = Verbose, cores = Cores,stepsize = Stepsize)
 
 sim.H0 <- BFDA.sim(expected.ES = ESH0, type = Type, prior = Prior, design = Design,
-                   n.max = nmax, alternative = Alternative,boundary = Boundary, 
+                   n.max = nmax, alternative = Alternative,boundary = Inf, 
                    B = rep,verbose = Verbose, cores = Cores,stepsize = Stepsize) 
 
 
@@ -69,8 +69,8 @@ nlz.H0 <- BFDA.analyze(sim.H0,design = Design, n.min = nmin,
 
 ## Plots ----
 
-plot(sim.H1, n.min=nmin, n.max=nmax, boundary=c(1/6, 6))
-plot(sim.H0, n.min=nmin, n.max=nmax, boundary=c(1/6, 6), forH1 = FALSE)
+plot(sim.H1, n.min=nmin, n.max=nmax, boundary=c(1/Boundary, Boundary))
+plot(sim.H0, n.min=nmin, n.max=nmax, boundary=c(1/Boundary, Boundary), forH1 = FALSE)
 
 SSD(sim.H1, power=.90, boundary=c(1/Boundary, Boundary))
 SSD(sim.H0, alpha=.02, boundary=c(1/Boundary, Boundary))
