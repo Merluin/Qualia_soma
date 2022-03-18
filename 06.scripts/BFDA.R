@@ -26,21 +26,51 @@ load("04.data_preprocessing/qualia_soma.RData")
 # SIMULATION https://rawgit.com/nicebread/BFDA/master/package/doc/BFDA_manual.html
 
 
-nmin<-10
-nmax<-15
+nmin<-40 #initial sample size
+nmax<-200 #maximum sample size
 
-sim.H1 <- BFDA.sim(expected.ES=0.2, type="t.paired",
-                   prior=list("Cauchy",list(prior.location=0, prior.scale=sqrt(2)/2)),
-                   design="sequential", n.max=nmax, alternative="greater",boundary=Inf, B=10000,
-                   verbose=TRUE, cores=11, stepsize = 10)
+sim.H1 <- BFDA.sim(expected.ES = 0.478, 
+                   type = "t.paired",
+                   prior = list("Cauchy",
+                                list(prior.location = 0,
+                                     prior.scale = sqrt(2)/2)),
+                   design = "sequential", 
+                   n.max = nmax, 
+                   alternative = "greater",
+                   boundary = Inf, 
+                   B = 10000,
+                   verbose = TRUE, 
+                   cores = 11, 
+                   stepsize = 10)
 
-BFDA.analyze(sim.H1, design="sequential", n.min=nmin, n.max = nmax, boundary=6)
+nlz.H1 <- BFDA.analyze(sim.H1,
+                       design = "sequential",
+                       n.min = nmin,
+                       n.max = nmax, 
+                       boundary = 6)
 
-sim.H0 <- BFDA.sim(expected.ES=0,  type="t.paired",
-                   prior=list("Cauchy",list(prior.location=0, prior.scale=sqrt(2)/2)),
-                   design="sequential", n.max=nmax, alternative="greater", boundary=Inf, B=10000,
-                   verbose=TRUE, cores=11, stepsize = 10)
-BFDA.analyze(sim.H0, design="sequential", n.min=nmin, n.max = nmax, boundary=6)
+sim.H0 <- BFDA.sim(expected.ES = 0,  
+                   type = "t.paired",
+                   prior = list("Cauchy",
+                                list(prior.location = 0,
+                                     prior.scale = sqrt(2)/2)),
+                   design = "sequential", 
+                   n.max = nmax, 
+                   alternative = "greater", 
+                   boundary = Inf, 
+                   B = 10000,
+                   verbose = TRUE, 
+                   cores = 11, 
+                   stepsize = 10)
+
+
+nlz.H0 <- BFDA.analyze(sim.H0, 
+                       design="sequential", 
+                       n.min = nmin, 
+                       n.max = nmax, 
+                       boundary=6)
+
+
 
 
 plot(sim.H1, n.min=nmin, n.max=nmax, boundary=c(1/6, 6))
