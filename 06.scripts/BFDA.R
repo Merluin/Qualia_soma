@@ -49,7 +49,7 @@ Stepsize      <-    10 #The number of observations added to the sample in each s
 # SIMULATION https://rawgit.com/nicebread/BFDA/master/package/doc/BFDA_manual.html
 
 sim.H1 <- BFDA.sim(expected.ES = ESH1, type = Type, prior = Prior, design = Design,
-                   n.max = nmax, alternative = Alternative,boundary = influence(), 
+                   n.max = nmax, alternative = Alternative,boundary = Inf, 
                    B = rep,verbose = Verbose, cores = Cores,stepsize = Stepsize)
 
 sim.H0 <- BFDA.sim(expected.ES = ESH0, type = Type, prior = Prior, design = Design,
