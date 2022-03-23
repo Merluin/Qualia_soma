@@ -20,8 +20,9 @@ library(emmeans)
 ## loading data ----
 
 load("04.data_preprocessing/qualia_soma.RData")
-############### Cumulative duration CT
-############### CT ----
+
+# Cumulative duration CT
+
 # dataset  ----
 CT<-rivalry_dataset%>%
   filter( !dur == 0)%>%
@@ -33,7 +34,6 @@ CT<-rivalry_dataset%>%
   na.omit()%>%
   'colnames<-'(c("subject","trial","condition","frequency","emotion","duration"))
   
-
 # summary CT  ----
 summary<-CT%>%
    group_by(emotion,condition,frequency) %>%
@@ -69,7 +69,6 @@ CTANOVA%>%
         axis.line = element_line(colour = "black"),
         strip.text.y = element_text(size = 20))
 ggsave("07.figures/bar_summary.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
-
 
 # plot delta  ----
 Delta%>%
@@ -119,9 +118,7 @@ Delta%>%
         strip.text.y = element_text(size = 20))
 ggsave("07.figures/CT31Hz.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
 
-
 # Anova CT  ----
-
 a1 <- aov_ez("subject", "duration",CTANOVA,   within = c( "percept", "condition","frequency"))
 a1
 
