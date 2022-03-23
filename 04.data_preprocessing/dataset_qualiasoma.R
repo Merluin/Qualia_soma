@@ -156,8 +156,8 @@ rivalry_dataset<-qualia_long
 
 ORT<-rivalry_dataset%>%
   filter(key==1)%>%
-  select(subject,Hz,rt,emotion)%>%
-  'colnames<-'(c("subject","Hz", "onset", "initial_percept"))
+  select(subject,condition,Hz,rt,emotion)%>%
+  'colnames<-'(c("subject","condition","Hz", "onset", "initial_percept"))
 
 z<-qualia_riv%>% # identify max nb of key press before press happy or neutral as IP 
   select(RESP)
@@ -186,8 +186,8 @@ for(i in 2:rep){ #replace mixed by firrt IP and correct time for ORT
   
 }
 
-onset_dataset<-cbind(ORT[,1:2],resp)%>%
-  'colnames<-'(c("subject", "stimulation", "initial_percept", "onset"))%>%
+onset_dataset<-cbind(ORT[,1:3],resp)%>%
+  'colnames<-'(c("subject","condition", "stimulation", "initial_percept", "onset"))%>%
   drop_na(initial_percept)
 
 ### Stimuli Valuation--------------------------------------------------------
