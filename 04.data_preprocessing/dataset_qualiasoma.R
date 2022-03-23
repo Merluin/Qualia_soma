@@ -26,7 +26,9 @@ source("05.functions/questionnaires.R")
 
 
 # loading data ----
-load("04.data_preprocessing/dataset.RData") 
+datasetname<-"dataset"
+dataset_concatenation(datasetname)
+load(past0("04.data_preprocessing/",datasetname,".RData") )
 
 
 ############################## Begin DATASET ##############################
