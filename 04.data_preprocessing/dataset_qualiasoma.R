@@ -28,7 +28,7 @@ source("05.functions/questionnaires.R")
 # loading data ----
 datasetname<-"dataset"
 dataset_concatenation(datasetname)
-load(past0("04.data_preprocessing/",datasetname,".RData") )
+load(paste0("04.data_preprocessing/",datasetname,".RData") )
 
 
 ############################## Begin DATASET ##############################
@@ -69,8 +69,6 @@ key<- Info%>%
   filter(is.na(val.rt))%>%
   select(-val.keys, -val.rt)
 
-Trial<-nrow(key%>%filter(subject==1)%>%select(subject))
- 
 keysize<-key$br.keys
 keysize<-gsub("[^a-zA-Z]", "", keysize)
 keysizemax<-max(nchar(keysize))
@@ -116,7 +114,7 @@ colnames(x) <- DUR
 x <- x %>%
   add_column(rt$KeyPress1RT, .before = TRUE) %>%
   rename("dur_onset" = "rt$KeyPress1RT")
-#x$tot <- rowSums(x) perverifica
+#x$tot <- rowSums(x) # per verifica
 
 # Dataframe 
 qualia_riv <- cbind(key%>%
@@ -158,12 +156,13 @@ rivalry_dataset<-qualia_long
 
 ORT<-rivalry_dataset%>%
   filter(key==1)%>%
-  select(subject,Hz,stimulation,rt,emotion)%>%
-  'colnames<-'(c("subject","Hz", "stimulation", "onset", "initial_percept"))
+  select(subject,Hz,rt,emotion)%>%
+  'colnames<-'(c("subject","Hz", "onset", "initial_percept"))
 
 z<-qualia_riv%>% # identify max nb of key press before press happy or neutral as IP 
   select(RESP)
 z[z!="mixed"]<-"xx"
+z<-z[z[,1]=="mixed",]
 rep=0
 while(!is.na(z[1,1])){
   z<-z[z[,1]=="mixed",]
