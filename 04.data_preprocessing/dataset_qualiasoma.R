@@ -213,12 +213,12 @@ valuation_dataset <- Info%>%
                               block == "arousal" & val.keys == 5 ~ 5,
                               block == "arousal" & val.keys == 6 ~ 6,
                               block == "arousal" & val.keys == 7 ~ 7))%>%
-  arrange(file.rx,stimulation)%>%
-  group_by(file.rx,subject,stimulation,block) %>% #add condition
+  arrange(file.rx,Hz)%>%
+  group_by(file.rx,subject,Hz,block) %>% #add condition
   summarise_at(vars(val.keys), list(mean))%>%
   spread(block,val.keys)%>%
-  select(subject,file.rx,stimulation,valence,arousal)%>%
-  'colnames<-'(c("subject" ,"emotion","stimulation","valence","arousal"))
+  select(subject,file.rx,Hz,valence,arousal)%>%
+  'colnames<-'(c("subject" ,"emotion","frequency","valence","arousal"))
 
   
 
