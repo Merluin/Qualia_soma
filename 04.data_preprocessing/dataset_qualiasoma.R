@@ -37,7 +37,8 @@ load("04.data_preprocessing/dataset.RData")
    select(participant, session, date, psychopyVersion, frameRate,right,amplitude_5hz,amplitude_31hz,Hz,
           stim, resp.keys,resp.rt, kb_valuation.keys,kb_valuation.rt,
           valence_loop.thisRepN,arousal_loop.thisRepN,hn_loop_trials.thisRepN,nh_loop_trials.thisRepN,
-          bn_loop_trials.thisRepN,nb_loop_trials.thisRepN,bn_loop_trials.thisN,nh_loop_trials.thisN,nb_loop_trials.thisN,hn_loop_trials.thisN)%>%
+          bn_loop_trials.thisRepN,nb_loop_trials.thisRepN,bn_loop_trials.thisN,nh_loop_trials.thisN,
+          nb_loop_trials.thisN,hn_loop_trials.thisN)%>%
    'colnames<-'(c("subject" ,"session","date","psychopy","frameRate" ,"file.rx","amplitude.5hz","amplitude.31hz","Hz",
                   "stimulation","br.keys","br.rt","val.keys","val.rt","valence","arousal","hn","nh","bn","nb","tbn","tnh","tnb","thn"))%>%
     mutate(amplitude.5hz = mean(amplitude.5hz,na.rm = TRUE),
