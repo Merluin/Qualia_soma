@@ -91,7 +91,7 @@ ggsave("07.figures/bar_delta.tiff", units="in", width=5, height=4, dpi=200, comp
 Delta%>%
 ggplot(aes(y=freq.0,x=freq.5) )+
   geom_point(aes(  color=percept, shape=condition),size=3)+ 
-  #geom_text(aes(  color=Emotion, shape=Emotion,label=subject),size=3)+ 
+#  geom_text(aes(  color=percept, shape=condition,label=subject),size=3)+ 
   geom_abline(intercept = 0, slope = 1)+
   labs(y="no-stimulation",x="5 hz stimulation")+
   coord_fixed()+
@@ -107,7 +107,7 @@ ggsave("07.figures/CT5Hz.tiff", units="in", width=5, height=4, dpi=200, compress
 Delta%>%
   ggplot(aes(y=freq.0,x=freq.31) )+
   geom_point(aes(  color=percept, shape=condition),size=3)+ 
-  #geom_text(aes(  color=Emotion, shape=Emotion,label=subject),size=3)+ 
+#  geom_text(aes(  color=percept, shape=condition,label=subject),size=3)+ 
   geom_abline(intercept = 0, slope = 1)+
   labs(y="no-stimulation",x="31 hz stimulation")+
   coord_fixed()+
