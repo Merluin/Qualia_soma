@@ -26,7 +26,6 @@ load("04.data_preprocessing/qualia_soma.RData")
 # Questionnaire ----
 Questionnaire<-Questionnaires%>%
   mutate(subject = as.numeric(as.character(id)))%>%
-  filter(subject >= 6,subject !=14)%>%
   select(id, age,fantasy,personal_distress,perspective_taking,empathic_concern,iri_tot,tas_tot)
 
 #age
@@ -40,6 +39,7 @@ IRI<-Questionnaire%>%
   select(id, iri_tot)%>%
   summarise_at(vars(iri_tot), list(mean,sd))%>%
   'colnames<-'(c( "mean", "Sd"))
+
 TAS<-Questionnaire%>%
   select(id, tas_tot)%>%
   summarise_at(vars( tas_tot), list(mean,sd))%>%
