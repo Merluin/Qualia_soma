@@ -34,14 +34,14 @@ load("04.data_preprocessing/dataset.RData")
 
 # Subjects General Information---------------------------------------------
  Info<-dataset%>%
-   select(participant, session, date, psychopyVersion, frameRate,right,position.right, 
-          tactil_stim_level.response,stim, resp.keys,resp.rt, kb_valuation.keys,kb_valuation.rt,
+   select(participant, session, date, psychopyVersion, frameRate,right,amplitude_5hz,amplitude_31hz,Hz,
+          stim, resp.keys,resp.rt, kb_valuation.keys,kb_valuation.rt,
           valence_loop.thisRepN,arousal_loop.thisRepN,hn_loop_trials.thisRepN,nh_loop_trials.thisRepN,
-          bn_loop_trials.thisRepN,nb_loop_trials.thisRepN)%>%
-   'colnames<-'(c("subject" ,"session","date","psychopy","frameRate" ,"file.rx","position.rx","stim.lvl",
-                  "stimulation","br.keys","br.rt","val.keys","val.rt","valence","arousal","hn","nh","bn","nb"))%>%
-    mutate(stim.lvl = mean(stim.lvl,na.rm = TRUE),
-          position.rx = max(na.omit(position.rx)),
+          bn_loop_trials.thisRepN,nb_loop_trials.thisRepN,bn_loop_trials.thisN,nh_loop_trials.thisN,nb_loop_trials.thisN,hn_loop_trials.thisN)%>%
+   'colnames<-'(c("subject" ,"session","date","psychopy","frameRate" ,"file.rx","amplitude.5hz","amplitude.31hz","Hz",
+                  "stimulation","br.keys","br.rt","val.keys","val.rt","valence","arousal","hn","nh","bn","nb","tbn","tnh","tnb","thn"))%>%
+    mutate(amplitude.5hz = mean(amplitude.5hz,na.rm = TRUE),
+           amplitude.31hz = mean(amplitude.31hz,na.rm = TRUE),
           hn = ifelse(hn < 4 , "hn", ''),
           nh = ifelse(nh < 4 , "nh", ''),
           bn = ifelse(bn < 4 , "bn", ''),
@@ -49,6 +49,8 @@ load("04.data_preprocessing/dataset.RData")
           valence = ifelse(valence < 4 , "valence", ''),
           arousal = ifelse(arousal < 4 , "arousal", ''),
           block = coalesce(hn,nh,bn,nb,valence,arousal),
+          trial = coalesce(thn,tnh,tbn,tnb),
+          trial = trial +1,
           condition= case_when(block == "hn" ~ "emotion",
                                block == "nh" ~ "emotion",
                                block == "bn" ~ "control",
@@ -60,7 +62,7 @@ load("04.data_preprocessing/dataset.RData")
 ### Rivalry ---------------------------------------------------------------
 # dataset only key resp
 key<- Info%>%
-  select(-valence,-arousal,-hn,-nh,-bn,-nb)%>%
+  select(-valence,-arousal,-hn,-nh,-bn,-nb,-thn,-tnh,-tbn,-tnb)%>%
   filter(is.na(val.rt))%>%
   select(-val.keys, -val.rt)
 
@@ -123,7 +125,6 @@ qualia_rt <- qualia_riv %>%
   gather(key = keys, value = rt, RT)
 
 qualia_resp <- qualia_riv %>%
-  mutate(trial = rep(1:Trial,max(subject)))%>%
   select( -RT, -DUR)%>%
   gather(key = keys, value = resp, RESP)
 
@@ -133,8 +134,9 @@ qualia_dur <- qualia_riv %>%
 
 x<-cbind(qualia_resp,qualia_dur$dur,qualia_rt$rt)
 qualia_long <- x%>%
-  'colnames<-'(c("subject","session","date" ,"psychopy" ,"frameRate" , "file.rx" ,"position.rx"   
-                 , "stim.lvl" ,  "stimulation" ,"condition","block",  "dur_onset" , "trial"         
+  'colnames<-'(c("subject","session","date" ,"psychopy" ,"frameRate" , "file.rx" ,
+                 "amplitude.5hz","amplitude.31hz","Hz",
+                 "stimulation", "trial" ,"condition","block",  "dur_onset"          
                  , "key","emotion" , "dur","rt"  ))%>%
   mutate(key = parse_number(key),
          rt=as.numeric(rt),
@@ -153,8 +155,8 @@ rivalry_dataset<-qualia_long
 
 ORT<-rivalry_dataset%>%
   filter(key==1)%>%
-  select(subject,stimulation,rt,emotion)%>%
-  'colnames<-'(c("subject", "stimulation", "onset", "initial_percept"))
+  select(subject,Hz,stimulation,rt,emotion)%>%
+  'colnames<-'(c("subject","Hz", "stimulation", "onset", "initial_percept"))
 
 z<-qualia_riv%>% # identify max nb of key press before press happy or neutral as IP 
   select(RESP)
@@ -221,7 +223,7 @@ valuation_dataset <- Info%>%
 
 ### Questionnaires ---------------------------------------------------------------
 
-subjectorder<-c( "1", "2","3", "4","5","6","7","8","9","10","11","12","13","14")
+subjectorder<-c( "1", "2","3")
 
 #Questionnaires<-questionnaires("04.data_preprocessing/questionnaires.csv",subjectorder)
 
