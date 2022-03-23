@@ -6,7 +6,9 @@
 # Description:    Put together several csv files
 #
 #################################################
-
+dataset_concatenation()<- function(name)
+{
+  
 # clean environment
 rm(list=ls()) 
 # packages
@@ -46,7 +48,10 @@ for (i in 2:length(effective)){
 }
 
 #write.csv2(dataset, file = "03.original_data/Pt_.csv")
-save(dataset,file="04.data_preprocessing/dataset.RData")
+save(dataset,file=paste0("04.data_preprocessing/",name,".RData"))
+
+
+} #end function  
 
 #################################################
 # 
