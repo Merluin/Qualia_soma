@@ -21,6 +21,7 @@ folder_dir<-c("03.original_data/")
 dataset<-list.files(path=folder_dir, full.names = TRUE) %>%
   lapply(.,function(x) read.csv(x, sep=";", header=TRUE,stringsAsFactors = FALSE ))%>%
   lapply(clean_practice)%>%
+  lapply(.,stim_amplitude)%>%
   bind_rows(.id = "id")
 
 # clean cells from extra characters like [] 

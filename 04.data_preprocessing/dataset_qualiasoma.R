@@ -23,7 +23,7 @@ library(dplyr)
 source("05.functions/dataset_concatenation.R")
 source("05.functions/keypress.R")
 source("05.functions/questionnaires.R")
-
+source("05.functions/stim_amplitude.R")
 
 # loading data ----
 datasetname<-"dataset"
@@ -38,34 +38,37 @@ load(paste0("04.data_preprocessing/",datasetname,".RData") )
  Info<-dataset%>%
    select(participant, session, date, psychopyVersion, frameRate,right,amplitude_5hz,amplitude_31hz,Hz,
           stim, resp.keys,resp.rt, kb_valuation.keys,kb_valuation.rt,
-          valence_loop.thisRepN,arousal_loop.thisRepN,hn_loop_trials.thisRepN,nh_loop_trials.thisRepN,
-          bn_loop_trials.thisRepN,nb_loop_trials.thisRepN,bn_loop_trials.thisN,nh_loop_trials.thisN,
-          nb_loop_trials.thisN,hn_loop_trials.thisN)%>%
+          valence_loop.thisRepN,
+          arousal_loop.thisRepN,
+          bn_loop_trials.thisN,
+          nh_loop_trials.thisN,
+          nb_loop_trials.thisN,
+          hn_loop_trials.thisN)%>%
    'colnames<-'(c("subject" ,"session","date","psychopy","frameRate" ,"file.rx","amplitude.5hz","amplitude.31hz","Hz",
-                  "stimulation","br.keys","br.rt","val.keys","val.rt","valence","arousal","hn","nh","bn","nb","tbn","tnh","tnb","thn"))%>%
-    mutate(amplitude.5hz = mean(amplitude.5hz,na.rm = TRUE),
-           amplitude.31hz = mean(amplitude.31hz,na.rm = TRUE),
-          hn = ifelse(hn < 4 , "hn", ''),
-          nh = ifelse(nh < 4 , "nh", ''),
-          bn = ifelse(bn < 4 , "bn", ''),
-          nb = ifelse(nb < 4 , "nb", ''),
-          valence = ifelse(valence < 4 , "valence", ''),
-          arousal = ifelse(arousal < 4 , "arousal", ''),
+                  "stimulation","br.keys","br.rt","val.keys","val.rt","valence","arousal","hn","nh","bn","nb"))%>%
+    mutate(#amplitude.5hz = mean(amplitude.5hz,na.rm = TRUE),
+           #amplitude.31hz = mean(amplitude.31hz,na.rm = TRUE),
+           trial = coalesce(hn,nh,bn,nb),
+           trial = trial +1,
+          hn = ifelse(hn >= 0 , "hn", ''),
+          nh = ifelse(nh >= 0 , "nh", ''),
+          bn = ifelse(bn >= 0 , "bn", ''),
+          nb = ifelse(nb >= 0 , "nb", ''),
+          valence = ifelse(valence >= 0 , "valence", ''),
+          arousal = ifelse(arousal >= 0 , "arousal", ''),
           block = coalesce(hn,nh,bn,nb,valence,arousal),
-          trial = coalesce(thn,tnh,tbn,tnb),
-          trial = trial +1,
           condition= case_when(block == "hn" ~ "emotion",
                                block == "nh" ~ "emotion",
                                block == "bn" ~ "control",
                                block == "nb" ~ "control",
                                block == "valence" ~ "valuation",
                                block == "arousal" ~ "valuation"))%>%
-    drop_na(stimulation)
-
+    drop_na(stimulation)%>%
+  select(-valence,-arousal,-hn,-nh,-bn,-nb)
+  
 ### Rivalry ---------------------------------------------------------------
 # dataset only key resp
 key<- Info%>%
-  select(-valence,-arousal,-hn,-nh,-bn,-nb,-thn,-tnh,-tbn,-tnb)%>%
   filter(is.na(val.rt))%>%
   select(-val.keys, -val.rt)
 
@@ -194,7 +197,6 @@ onset_dataset<-cbind(ORT[,1:3],resp)%>%
 
 # Valenza
 valuation_dataset <- Info%>%
-  select(-valence,-arousal,-hn,-nh,-bn,-nb,-br.keys,-br.rt)%>%
   filter(condition == "valuation")%>%
   mutate(file.rx = case_when(file.rx == "images/MAM11BFI.png"~ "baffi",
                               file.rx == "images/MAM11HAS.png"~ "happy",

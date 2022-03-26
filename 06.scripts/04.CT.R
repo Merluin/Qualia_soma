@@ -16,6 +16,7 @@ library(ggeffects)
 library(afex)
 library(hrbrthemes)
 library(emmeans)
+library(gridExtra)
 
 ## loading data ----
 
@@ -25,29 +26,30 @@ load("04.data_preprocessing/qualia_soma.RData")
 
 # dataset  ----
 CT<-rivalry_dataset%>%
-  filter( !dur == 0)%>%
-  select(subject, trial,Hz, key,emotion,condition,  dur)%>%
-  group_by(subject,trial,condition,Hz,emotion)%>%
+  select(subject,block,condition, trial,Hz, key,emotion,  dur)%>%
+  mutate(percept = ifelse(emotion == "baffi" | emotion == "happy", "target",emotion))%>%
+  group_by(subject,block,condition, trial,Hz,percept)%>%
   summarise_at(vars(dur), list(sum))%>%
-  filter(!dur == 0)%>%
-  as.data.frame()%>%
-  na.omit()%>%
-  'colnames<-'(c("subject","trial","condition","frequency","emotion","duration"))
-  
+  spread(percept,dur,fill=0)%>%
+  select(subject ,block,condition ,trial,Hz, mixed, neutral, target)%>%
+  gather(percept,duration,6:8)%>%
+  group_by(subject,block,condition,Hz,percept)%>%
+  summarise_at(vars(duration), list(mean))%>%
+  group_by(subject,condition,Hz,percept,)%>%
+  summarise_at(vars(duration), list(mean))%>%
+  data.frame()%>%
+  'colnames<-'(c("subject","condition","frequency","percept","duration"))
+
 # summary CT  ----
 summary<-CT%>%
-   group_by(emotion,condition,frequency) %>%
+   group_by(percept,condition,frequency) %>%
   summarise_at(vars(duration), list(mean))%>%
   as.data.frame%>% 
   mutate(duration = duration/1000) 
 
 # data ANOVA
-CTANOVA<-CT%>%
-  group_by(subject,emotion,condition,frequency) %>% #add condition
-  summarise_at(vars(duration), list(mean))%>%
-  mutate(percept = ifelse(emotion == "baffi" | emotion == "happy", "target",emotion))%>%
-  data.frame()
-  
+CTANOVA<-CT
+
 # data predominance
 Delta <- CTANOVA%>%
   select(subject,condition,frequency,percept,duration)%>%
@@ -60,6 +62,7 @@ Delta <- CTANOVA%>%
 CTANOVA%>%
   group_by(percept,condition,frequency) %>%
   summarise_at(vars(duration), list(mean))%>%
+  mutate(frequency = as.factor(frequency))%>%
   ggplot(aes(y=duration,x=percept, fill = frequency) )+
   geom_bar(stat="identity", position = "dodge2")+
   facet_grid(. ~ condition)+
@@ -69,6 +72,26 @@ CTANOVA%>%
         axis.line = element_line(colour = "black"),
         strip.text.y = element_text(size = 20))
 ggsave("07.figures/bar_summary.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
+
+plot_list <- list()
+for(i in 1:max(CTANOVA$subject)){
+g<-CTANOVA%>%
+    filter(subject == i)%>%
+  group_by(percept,condition,frequency) %>%
+  summarise_at(vars(duration), list(mean))%>%
+  mutate(frequency = as.factor(frequency))%>%
+  ggplot(aes(y=duration,x=percept, fill = frequency) )+
+  geom_bar(stat="identity", position = "dodge2")+
+  facet_grid(. ~ condition)+
+  theme_classic()+
+  theme(text=element_text(size=16,  family="Helvetica"),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"),
+        strip.text.y = element_text(size = 20))
+  plot_list[[i]] <- g
+}
+grid.arrange(grobs=plot_list,ncol=2)
+
 
 # plot delta  ----
 Delta%>%
@@ -85,6 +108,27 @@ Delta%>%
         axis.line = element_line(colour = "black"),
         strip.text.y = element_text(size = 20))
 ggsave("07.figures/bar_delta.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
+
+plot_list <- list()
+for(i in 1:max(CTANOVA$subject)){
+  g<-Delta%>%
+    filter(subject == i)%>%
+  select(subject,condition,percept,PR.5,PR.31)%>%
+  gather(frequency,duration,4:5)%>%
+  group_by(percept,condition,frequency) %>%
+  summarise_at(vars(duration), list(mean))%>%
+  ggplot(aes(y=duration,x=percept, fill = frequency) )+
+  geom_bar(stat="identity", position = "dodge2")+
+  facet_grid(. ~ condition)+
+  theme_classic()+
+  theme(text=element_text(size=16,  family="Helvetica"),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"),
+        strip.text.y = element_text(size = 20))
+  plot_list[[i]] <- g
+}
+grid.arrange(grobs=plot_list,ncol=2)
+
 
 # plot 5Hz ----
 Delta%>%
@@ -105,8 +149,8 @@ ggsave("07.figures/CT5Hz.tiff", units="in", width=5, height=4, dpi=200, compress
 # plot 31Hz ----
 Delta%>%
   ggplot(aes(y=freq.0,x=freq.31) )+
-  geom_point(aes(  color=percept, shape=condition),size=3)+ 
-#  geom_text(aes(  color=percept, shape=condition,label=subject),size=3)+ 
+#  geom_point(aes(  color=percept, shape=condition),size=3)+ 
+geom_text(aes(  color=percept, shape=condition,label=subject),size=3)+ 
   geom_abline(intercept = 0, slope = 1)+
   labs(y="no-stimulation",x="31 hz stimulation")+
   coord_fixed()+
@@ -121,6 +165,15 @@ ggsave("07.figures/CT31Hz.tiff", units="in", width=5, height=4, dpi=200, compres
 # Anova CT  ----
 a1 <- aov_ez("subject", "duration",CTANOVA,   within = c( "percept", "condition","frequency"))
 a1
+m1<-emmeans(a1,pairwise~ percept|condition,adjust="bonf")
+
+# Anova Delta CT  ----
+x<-Delta%>%
+  select(subject,condition,percept,PR.5,PR.31)%>%
+  gather(frequency,duration,4:5)
+a2 <- aov_ez("subject", "duration",x,   within = c( "percept", "condition","frequency"))
+a2
+m1<-emmeans(a1,pairwise~ percept|condition|frequency,adjust="bonf")
 
 #################################################
 # 
