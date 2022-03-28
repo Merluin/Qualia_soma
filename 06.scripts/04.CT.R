@@ -73,7 +73,7 @@ CTANOVA%>%
         panel.background = element_blank(),
         axis.line = element_line(colour = "black"),
         strip.text.y = element_text(size = 20))
-ggsave("07.figures/bar_summary.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
+ggsave("07.figures/CT_bar_summary.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
 
 plot_list <- list()
 for(i in 1:max(CTANOVA$subject)){
@@ -93,6 +93,7 @@ g<-CTANOVA%>%
   plot_list[[i]] <- g
 }
 grid.arrange(grobs=plot_list,ncol=2)
+ggsave("07.figures/CT_bar_summary_sub.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
 
 
 # plot delta  ----
@@ -109,7 +110,7 @@ Delta%>%
         panel.background = element_blank(),
         axis.line = element_line(colour = "black"),
         strip.text.y = element_text(size = 20))
-ggsave("07.figures/bar_delta.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
+ggsave("07.figures/CT_bar_delta.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
 
 plot_list <- list()
 for(i in 1:max(CTANOVA$subject)){
@@ -130,6 +131,7 @@ for(i in 1:max(CTANOVA$subject)){
   plot_list[[i]] <- g
 }
 grid.arrange(grobs=plot_list,ncol=2)
+ggsave("07.figures/CT_bar_delta_sub.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
 
 
 # plot 5Hz ----
@@ -146,7 +148,7 @@ ggplot(aes(y=freq.0,x=freq.5) )+
         panel.background = element_blank(),
         axis.line = element_line(colour = "black"),
         strip.text.y = element_text(size = 20))
-ggsave("07.figures/CT5Hz.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
+ggsave("07.figures/CT_5Hz.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
 
 # plot 31Hz ----
 Delta%>%
@@ -162,12 +164,12 @@ geom_text(aes(  color=percept, shape=condition,label=subject),size=3)+
         panel.background = element_blank(),
         axis.line = element_line(colour = "black"),
         strip.text.y = element_text(size = 20))
-ggsave("07.figures/CT31Hz.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
+ggsave("07.figures/CT_31Hz.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
 
 # Anova CT  ----
 a1 <- aov_ez("subject", "duration",CTANOVA,   within = c( "percept", "condition","frequency"))
 a1
-m1<-emmeans(a1,pairwise~ percept|condition,adjust="bonf")
+a1m1<-emmeans(a1,pairwise~ percept|condition,adjust="bonf")
 
 # Anova Delta CT  ----
 x<-Delta%>%
@@ -175,7 +177,19 @@ x<-Delta%>%
   gather(frequency,duration,4:5)
 a2 <- aov_ez("subject", "duration",x,   within = c( "percept", "condition","frequency"))
 a2
-m1<-emmeans(a1,pairwise~ percept|condition|frequency,adjust="bonf")
+a2m1<-emmeans(a1,pairwise~ percept|condition|frequency,adjust="bonf")
+
+
+# results dataset
+anova.ct<-a1
+onova.delta <- a2
+posthoc.ct1 <- a1m1
+posthoc.delta <- a2m1
+save(anova.ct,
+     onova.delta,
+     posthoc.ct1,
+     posthoc.delta,
+     file = "04.data_preprocessing/CT_results.RData")
 
 #################################################
 # 
