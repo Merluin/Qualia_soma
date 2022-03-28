@@ -27,6 +27,13 @@ ORT<-onset_dataset%>%
   drop_na()%>%
   select(subject, condition,stimulation, onset, initial_percept)%>%
   'colnames<-'(c("subject","condition", "stimulation", "onset", "initial_percept"))%>%
+  group_by(subject, condition,stimulation, initial_percept)%>%
+  summarise_at(vars(onset), list(mean))%>%
+  mutate(percept = ifelse(initial_percept == "baffi" | initial_percept == "happy", "target",initial_percept))%>%
+  select(subject, condition,stimulation, onset, percept)%>%
+  spread(percept,onset,fill=0)%>%
+  select(subject ,condition ,stimulation, mixed, neutral, target)%>%
+  gather(initial_percept,onset,4:6)%>%
   mutate(onset = log(onset))
 
 
@@ -42,13 +49,15 @@ full<-ORT%>%
 ORTANOVA<-ORT%>%
   group_by(subject,stimulation,condition,initial_percept) %>%
   summarise_at(vars(onset), list(mean))%>%
-  mutate(percept = ifelse(initial_percept == "baffi" | initial_percept == "happy", "target",initial_percept))%>%
-  data.frame()
+  data.frame()%>%
+  mutate(onset = log(onset))
 
 plot <- ORTANOVA%>%
-  select(subject,condition,stimulation,percept,onset)%>%
+  filter(onset >= 0)%>%
+  select(subject,condition,stimulation,initial_percept,onset)%>%
   spread(stimulation,onset,fill=0)%>%
   'colnames<-'(c("subject","condition","percept","freq.0", "freq.5","freq.31"))
+
 
 
 
@@ -66,7 +75,7 @@ plot%>%
         panel.background = element_blank(),
         axis.line = element_line(colour = "black"),
         strip.text.y = element_text(size = 20))
-ggsave("07.figures/ORT5Hz.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
+ggsave("07.figures/ORT_5Hz.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
 
 # plot 31Hz ----
 plot%>%
@@ -82,15 +91,19 @@ plot%>%
         panel.background = element_blank(),
         axis.line = element_line(colour = "black"),
         strip.text.y = element_text(size = 20))
-ggsave("07.figures/ORT31Hz.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
+ggsave("07.figures/ORT_31Hz.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
 
 
 ORTANOVA<-ORTANOVA
 # Anova ORT ----
 
-a1<-aov_ez("subject", "onset", ORTANOVA,  within = c("condition","stimulation", "percept"))
+a1<-aov_ez("subject", "onset", ORTANOVA,  within = c("condition","stimulation", "initial_percept"))
 
+# results dataset
+anova.ORT<-a1
 
+save(anova.ORT,
+     file = "04.data/ORT_results.RData")
 
 
 #################################################
