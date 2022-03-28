@@ -57,10 +57,8 @@ x<-valuation_dataset%>%
 
 
 a1 <- aov_ez("subject", "score", x,  within = c("frequency", "emotion"))
-afex_plot(a1, x = "emotion", trace = "frequency", error = "within",mapping = c("color", "fill"),
-          data_geom = geom_boxplot, data_arg = list(width = 0.4),
-          point_arg = list(size = 1.5), line_arg = list(size = 1))+theme_classic()
-m1<-emmeans(a1,pairwise~ Emotion,adjust="bonf")
+
+a1m1<-emmeans(a1,pairwise~ emotion,adjust="bonf")
 
 ############### ANOVA AROUSAL ----
 # dataset ----
@@ -70,13 +68,20 @@ y<-valuation_dataset%>%
   mutate(subject =as.factor(subject))
 
 
-a1 <- aov_ez("subject", "score", y,  within = c("frequency", "emotion"))
-afex_plot(a1, y = "emotion", trace = "frequency", error = "within",mapping = c("color", "fill"),
-          data_geom = geom_boxplot, data_arg = list(width = 0.4),
-          point_arg = list(size = 1.5), line_arg = list(size = 1))+theme_classic()
-m1<-emmeans(a2,pairwise~ Emotion,adjust="bonf")
-m1<-emmeans(a2,pairwise~ Emotion|Condition,adjust="bonf")
-m2<-emmeans(a2,pairwise~ Condition|Emotion,adjust="bonf")
+a2 <- aov_ez("subject", "score", y,  within = c("frequency", "emotion"))
+
+a2m1<-emmeans(a2,pairwise~ emotion,adjust="bonf")
+
+# results dataset
+anova.valence<-a1
+onova.arousal <- a2
+posthoc.valence <- a1m1
+posthoc.arousal <- a2m1
+save(anova.valence,
+     onova.arousal,
+     posthoc.valence,
+     posthoc.arousal,
+     file = "04.data_preprocessing/valuation_results.RData")
 
 
 #################################################
