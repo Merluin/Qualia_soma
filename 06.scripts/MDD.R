@@ -20,7 +20,7 @@ library(gridExtra)
 
 ## loading data ----
 
-load("04.data_preprocessing/qualia_soma.RData")
+load("04.data/qualia_soma.RData")
 
 ############### MDD ----
 
@@ -185,7 +185,7 @@ save(anova.mdd,
      onova.delta,
      posthoc.mdd,
      posthoc.delta,
-     file = "04.data_preprocessing/MDD_results.RData")
+     file = "04.data/MDD_results.RData")
 
 #################################################
 # 

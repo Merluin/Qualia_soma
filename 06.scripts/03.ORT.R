@@ -19,7 +19,7 @@ library(ggpirate)
 
 ## loading data ----
 
-load("04.data_preprocessing/qualia_soma.RData")
+load("04.data/qualia_soma.RData")
 
 ############### ORT ----
 # dataset ----

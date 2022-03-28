@@ -20,7 +20,7 @@ library(wesanderson)
 
 ## loading data ----
 rm(list=ls())
-load("04.data_preprocessing/qualia_soma.RData")
+load("04.data/qualia_soma.RData")
 
 ## Data
 ############### Valuation ----
@@ -81,7 +81,7 @@ save(anova.valence,
      onova.arousal,
      posthoc.valence,
      posthoc.arousal,
-     file = "04.data_preprocessing/valuation_results.RData")
+     file = "04.data/valuation_results.RData")
 
 
 #################################################

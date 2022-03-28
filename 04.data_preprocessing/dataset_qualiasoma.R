@@ -28,7 +28,7 @@ source("05.functions/stim_amplitude.R")
 # loading data ----
 datasetname<-"dataset"
 dataset_concatenation(datasetname)
-load(paste0("04.data_preprocessing/",datasetname,".RData") )
+load(paste0("04.data/",datasetname,".RData") )
 
 
 ############################## Begin DATASET ##############################
@@ -238,7 +238,7 @@ save(onset_dataset,
      valuation_dataset,
      # Questionnaires,
      xp_resp,
-     file = "04.data_preprocessing/qualia_soma.RData")
+     file = "04.data/qualia_soma.RData")
 
 ###########################################################################
 #                                   END                                   #

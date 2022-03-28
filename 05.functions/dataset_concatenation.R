@@ -29,7 +29,7 @@ dataset$resp.keys<-str_remove_all(dataset$resp.keys, "[\\[|\\] ']")
 dataset$resp.rt<-str_remove_all(dataset$resp.rt, "[\\[|\\] ']")
 
 #write.csv2(dataset, file = "03.original_data/Pt_.csv")
-save(dataset,file=paste0("04.data_preprocessing/",dataset_name,".RData"))
+save(dataset,file=paste0("04.data/",dataset_name,".RData"))
 
 
 } #end function  

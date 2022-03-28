@@ -20,7 +20,7 @@ library(gridExtra)
 
 ## loading data ----
 
-load("04.data_preprocessing/qualia_soma.RData")
+load("04.data/qualia_soma.RData")
 
 # Cumulative duration CT
 
@@ -189,7 +189,7 @@ save(anova.ct,
      onova.delta,
      posthoc.ct1,
      posthoc.delta,
-     file = "04.data_preprocessing/CT_results.RData")
+     file = "04.data/CT_results.RData")
 
 #################################################
 # 
