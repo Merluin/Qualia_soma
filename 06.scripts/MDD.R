@@ -71,7 +71,7 @@ MDDANOVA%>%
         panel.background = element_blank(),
         axis.line = element_line(colour = "black"),
         strip.text.y = element_text(size = 20))
-ggsave("07.figures/bar_summary_MDD.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
+ggsave("07.figures/MDD_bar_summary.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
 
 plot_list <- list()
 for(i in 1:max(MDDANOVA$subject)){
@@ -91,6 +91,7 @@ for(i in 1:max(MDDANOVA$subject)){
   plot_list[[i]] <- g
 }
 grid.arrange(grobs=plot_list,ncol=2)
+ggsave("07.figures/MDD_bar_summary_sub.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
 
 
 # plot delta  ----
@@ -107,7 +108,7 @@ Delta%>%
         panel.background = element_blank(),
         axis.line = element_line(colour = "black"),
         strip.text.y = element_text(size = 20))
-ggsave("07.figures/bar_delta_MDD.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
+ggsave("07.figures/MDD_bar_delta.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
 
 plot_list <- list()
 for(i in 1:max(MDDANOVA$subject)){
@@ -128,6 +129,7 @@ for(i in 1:max(MDDANOVA$subject)){
   plot_list[[i]] <- g
 }
 grid.arrange(grobs=plot_list,ncol=2)
+ggsave("07.figures/MDD_bar_delta_sub.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
 
 # plot 5Hz ----
 Delta%>%
@@ -143,7 +145,7 @@ Delta%>%
         panel.background = element_blank(),
         axis.line = element_line(colour = "black"),
         strip.text.y = element_text(size = 20))
-ggsave("07.figures/CT5Hz.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
+ggsave("07.figures/MDD_5Hz.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
 
 # plot 31Hz ----
 Delta%>%
@@ -159,12 +161,12 @@ Delta%>%
         panel.background = element_blank(),
         axis.line = element_line(colour = "black"),
         strip.text.y = element_text(size = 20))
-ggsave("07.figures/MDD31Hz.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
+ggsave("07.figures/MDD_31Hz.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
 
 # anova MDD  ----
 a1 <- aov_ez("subject", "duration",MDDANOVA,   within = c( "percept", "condition","frequency"))
 a1
-m1<-emmeans(a1,pairwise~ percept|condition,adjust="bonf")
+a1m1<-emmeans(a1,pairwise~ percept|condition,adjust="bonf")
 
 # Anova Delta MDD  ----
 x<-Delta%>%
@@ -172,8 +174,18 @@ x<-Delta%>%
   gather(frequency,duration,4:5)
 a2 <- aov_ez("subject", "duration",x,   within = c( "percept", "condition","frequency"))
 a2
-m1<-emmeans(a1,pairwise~ percept|condition|frequency,adjust="bonf")
+a2m1<-emmeans(a1,pairwise~ percept|condition|frequency,adjust="bonf")
 
+# results dataset
+anova.mdd<-a1
+onova.delta <- a2
+posthoc.mdd <- a1m1
+posthoc.delta <- a2m1
+save(anova.mdd,
+     onova.delta,
+     posthoc.mdd,
+     posthoc.delta,
+     file = "04.data_preprocessing/MDD_results.RData")
 
 #################################################
 # 
