@@ -2,11 +2,10 @@
 # 
 # Experiment:     Qualiasoma_binocular_rivalry
 # Programmer:     Thomas Quettier
-# Date:           05/05/2020
-# Description:    Mean Dominance Duration MDD analysis
+# Date:           02/02/2022
+# Description:    Cumulative duration CT analysis
 #
 #################################################
-
 rm(list=ls())
 ############### Parameters ----
 ## library ----
@@ -17,66 +16,163 @@ library(ggeffects)
 library(afex)
 library(hrbrthemes)
 library(emmeans)
+library(gridExtra)
 
 ## loading data ----
 
 load("04.data_preprocessing/qualia_soma.RData")
-## Data
-############### MDD ----
-# dataset ----
-removed<-rivalry_dataset%>%
-  filter(last.key!="yes",subject >=6,subject !=14)%>%
-  select(subject, stimulation, key,emotion, trial,  duration)%>%
-  group_by(subject, stimulation, emotion, trial)%>%
-  summarise_at(vars(duration), list(mean))%>%
-  spread(emotion,duration,fill=0)%>%
-  select(subject ,stimulation ,trial, happy, mixed, neutral)%>%
-  gather(emotion,duration,4:6)%>%
-  as.data.frame()%>%
-  na.omit()
 
-# summary MDD  ----
- removed%>%
-  group_by(stimulation, emotion) %>%
-  summarise_at(vars(duration), list(mean,sd))%>%
-  'colnames<-'(c("stimulation","Emotion","duration","Sd"))%>%
+############### MDD ----
+
+# dataset ----
+MDD<-rivalry_dataset%>%
+  filter(last.key!="yes")%>%
+  select(subject,block,condition, trial,Hz, key,emotion,  dur)%>%
+  mutate(percept = ifelse(emotion == "baffi" | emotion == "happy", "target",emotion))%>%
+  group_by(subject,block,condition, trial,Hz,percept)%>%
+  summarise_at(vars(dur), list(mean))%>%
+  spread(percept,dur,fill=0)%>%
+  gather(percept,duration,6:8)%>%
+  group_by(subject,block,condition,Hz,percept)%>%
+  summarise_at(vars(duration), list(mean))%>%
+  group_by(subject,condition,Hz,percept,)%>%
+  summarise_at(vars(duration), list(mean))%>%
+  data.frame()%>%
+  'colnames<-'(c("subject","condition","frequency","percept","duration"))
+
+## summary CT  ----
+summary<-MDD%>%
+  group_by(percept,condition,frequency) %>%
+  summarise_at(vars(duration), list(mean))%>%
   as.data.frame%>% 
-  mutate(duration = duration/1000,Sd = Sd/1000) 
+  mutate(duration = duration/1000) 
 
 # data ANOVA
-MDDANOVA<-removed%>%
-  group_by(subject,stimulation,emotion) %>%
-  summarise_at(vars(duration), list(mean))%>%
-  as.data.frame()%>%
-  mutate(Pt= as.character(subject),
-         #group = ifelse(subject<6,"cheeks","mouth")
-         )
+MDDANOVA<-MDD
+
+# data predominance
+Delta <- MDDANOVA%>%
+  select(subject,condition,frequency,percept,duration)%>%
+  spread(frequency,duration)%>%
+  'colnames<-'(c("subject","condition","percept","freq.0", "freq.5","freq.31"))%>%
+  mutate(PR.5 = (freq.5-freq.0),
+         PR.31 = (freq.31-freq.0))
 
 # plot MDD  ----
 MDDANOVA%>%
- filter(duration!=0)%>%
-  spread(stimulation,duration)%>%
-  data.frame()%>%
-  ggplot(aes(y=yes,x=no) )+
-  #geom_text(aes(color=emotion, shape=emotion,label= subject))+
-  geom_point(aes(  color=emotion, shape=emotion),size=3)+ 
-  geom_abline(intercept = 0, slope = 1)+
-  labs(y="Bolcked Mean Dominance Duration (ms)",x="Free Mean Dominance Duration (ms)")+
-  coord_fixed()+
-  expand_limits( y=c(5000,12000),x=c(5000,12000))+
+  group_by(percept,condition,frequency) %>%
+  summarise_at(vars(duration), list(mean))%>%
+  mutate(frequency = as.factor(frequency))%>%
+  ggplot(aes(y=duration,x=percept, fill = frequency) )+
+  geom_bar(stat="identity", position = "dodge2")+
+  facet_grid(. ~ condition)+
   theme_classic()+
   theme(text=element_text(size=16,  family="Helvetica"),
         panel.background = element_blank(),
         axis.line = element_line(colour = "black"),
         strip.text.y = element_text(size = 20))
-ggsave("07.figures/MDDsoma.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
+ggsave("07.figures/bar_summary_MDD.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
 
+plot_list <- list()
+for(i in 1:max(MDDANOVA$subject)){
+  g<-MDDANOVA%>%
+    filter(subject == i)%>%
+    group_by(percept,condition,frequency) %>%
+    summarise_at(vars(duration), list(mean))%>%
+    mutate(frequency = as.factor(frequency))%>%
+    ggplot(aes(y=duration,x=percept, fill = frequency) )+
+    geom_bar(stat="identity", position = "dodge2")+
+    facet_grid(. ~ condition)+
+    theme_classic()+
+    theme(text=element_text(size=16,  family="Helvetica"),
+          panel.background = element_blank(),
+          axis.line = element_line(colour = "black"),
+          strip.text.y = element_text(size = 20))
+  plot_list[[i]] <- g
+}
+grid.arrange(grobs=plot_list,ncol=2)
+
+
+# plot delta  ----
+Delta%>%
+  select(subject,condition,percept,PR.5,PR.31)%>%
+  gather(frequency,duration,4:5)%>%
+  group_by(percept,condition,frequency) %>%
+  summarise_at(vars(duration), list(mean))%>%
+  ggplot(aes(y=duration,x=percept, fill = frequency) )+
+  geom_bar(stat="identity", position = "dodge2")+
+  facet_grid(. ~ condition)+
+  theme_classic()+
+  theme(text=element_text(size=16,  family="Helvetica"),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"),
+        strip.text.y = element_text(size = 20))
+ggsave("07.figures/bar_delta_MDD.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
+
+plot_list <- list()
+for(i in 1:max(MDDANOVA$subject)){
+  g<-Delta%>%
+    filter(subject == i)%>%
+    select(subject,condition,percept,PR.5,PR.31)%>%
+    gather(frequency,duration,4:5)%>%
+    group_by(percept,condition,frequency) %>%
+    summarise_at(vars(duration), list(mean))%>%
+    ggplot(aes(y=duration,x=percept, fill = frequency) )+
+    geom_bar(stat="identity", position = "dodge2")+
+    facet_grid(. ~ condition)+
+    theme_classic()+
+    theme(text=element_text(size=16,  family="Helvetica"),
+          panel.background = element_blank(),
+          axis.line = element_line(colour = "black"),
+          strip.text.y = element_text(size = 20))
+  plot_list[[i]] <- g
+}
+grid.arrange(grobs=plot_list,ncol=2)
+
+# plot 5Hz ----
+Delta%>%
+  ggplot(aes(y=freq.0,x=freq.5) )+
+  geom_point(aes(  color=percept, shape=condition),size=3)+ 
+  #  geom_text(aes(  color=percept, shape=condition,label=subject),size=3)+ 
+  geom_abline(intercept = 0, slope = 1)+
+  labs(y="no-stimulation",x="5 hz stimulation")+
+  coord_fixed()+
+  expand_limits( y=c(2000,30000),x=c(2000,30000))+
+  theme_classic()+
+  theme(text=element_text(size=16,  family="Helvetica"),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"),
+        strip.text.y = element_text(size = 20))
+ggsave("07.figures/CT5Hz.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
+
+# plot 31Hz ----
+Delta%>%
+  ggplot(aes(y=freq.0,x=freq.31) )+
+  geom_point(aes(  color=percept, shape=condition),size=3)+ 
+  #geom_text(aes(  color=percept, shape=condition,label=subject),size=3)+ 
+  geom_abline(intercept = 0, slope = 1)+
+  labs(y="no-stimulation",x="31 hz stimulation")+
+  coord_fixed()+
+  expand_limits( y=c(2000,30000),x=c(2000,30000))+
+  theme_classic()+
+  theme(text=element_text(size=16,  family="Helvetica"),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"),
+        strip.text.y = element_text(size = 20))
+ggsave("07.figures/MDD31Hz.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
 
 # anova MDD  ----
-
-a1<-aov_ez("subject", "duration", MDDANOVA,  within = c("stimulation", "emotion"))
+a1 <- aov_ez("subject", "duration",MDDANOVA,   within = c( "percept", "condition","frequency"))
 a1
-m1<-emmeans(a1,pairwise~ emotion,adjust="bonf")
+m1<-emmeans(a1,pairwise~ percept|condition,adjust="bonf")
+
+# Anova Delta MDD  ----
+x<-Delta%>%
+  select(subject,condition,percept,PR.5,PR.31)%>%
+  gather(frequency,duration,4:5)
+a2 <- aov_ez("subject", "duration",x,   within = c( "percept", "condition","frequency"))
+a2
+m1<-emmeans(a1,pairwise~ percept|condition|frequency,adjust="bonf")
 
 
 #################################################

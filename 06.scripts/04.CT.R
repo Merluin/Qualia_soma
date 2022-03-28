@@ -40,6 +40,8 @@ CT<-rivalry_dataset%>%
   data.frame()%>%
   'colnames<-'(c("subject","condition","frequency","percept","duration"))
 
+
+
 # summary CT  ----
 summary<-CT%>%
    group_by(percept,condition,frequency) %>%
