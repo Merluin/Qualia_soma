@@ -1,0 +1,37 @@
+---
+title: "Results Qualiasoma"
+author: "tcjq"
+date: "3/28/2022"
+output:
+  pdf_document:
+    fig_caption: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tiff)
+library(grid)
+library(knitr)
+
+```
+
+## R Markdown
+
+This is a report for QualiaSoma results. 
+
+
+```{r CT5Hz, echo=FALSE, out.width = "90%",fig.cap="\\label{fig:CT5Hz}CT 5Hz"}
+include_graphics("../07.figures/CT_5Hz.png", error = FALSE)
+```
+
+```{r CT31Hz, echo=FALSE, out.width = "90%",fig.cap="\\label{fig:CT31Hz}CT 31Hz"}
+include_graphics("../07.figures/CT_31Hz.png", error = FALSE)
+```
+
+```{r CTbar, echo=FALSE, out.width = "90%",fig.cap="\\label{fig:CTbar}CT BAR"}
+include_graphics("../07.figures/CT_bar_summary.png", error = FALSE)
+```
+
+```{r CTbarsub, echo=FALSE, out.width = "90%",fig.cap="\\label{fig:CTbarsub}CT BAR sub"}
+include_graphics("../07.figures/CT_bar_summary_sub.png", error = FALSE)
+```

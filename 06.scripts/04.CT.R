@@ -27,6 +27,7 @@ load("04.data/qualia_soma.RData")
 # dataset  ----
 CT<-rivalry_dataset%>%
   select(subject,block,condition, trial,Hz, key,emotion,  dur)%>%
+  filter(trial < 13)%>%
   mutate(percept = ifelse(emotion == "baffi" | emotion == "happy", "target",emotion))%>%
   group_by(subject,block,condition, trial,Hz,percept)%>%
   summarise_at(vars(dur), list(sum))%>%
@@ -153,8 +154,8 @@ ggsave("07.figures/CT_5Hz.tiff", units="in", width=5, height=4, dpi=200, compres
 # plot 31Hz ----
 Delta%>%
   ggplot(aes(y=freq.0,x=freq.31) )+
-#  geom_point(aes(  color=percept, shape=condition),size=3)+ 
-geom_text(aes(  color=percept, shape=condition,label=subject),size=3)+ 
+  geom_point(aes(  color=percept, shape=condition),size=3)+ 
+#geom_text(aes(  color=percept, shape=condition,label=subject),size=3)+ 
   geom_abline(intercept = 0, slope = 1)+
   labs(y="no-stimulation",x="31 hz stimulation")+
   coord_fixed()+

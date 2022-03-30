@@ -26,7 +26,7 @@ load("04.data/qualia_soma.RData")
 
 # dataset ----
 MDD<-rivalry_dataset%>%
-  filter(last.key!="yes")%>%
+  filter(last.key!="yes",trial < 13, subject > 1)%>%
   select(subject,block,condition, trial,Hz, key,emotion,  dur)%>%
   mutate(percept = ifelse(emotion == "baffi" | emotion == "happy", "target",emotion))%>%
   group_by(subject,block,condition, trial,Hz,percept)%>%
