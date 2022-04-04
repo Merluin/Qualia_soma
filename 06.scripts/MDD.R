@@ -55,8 +55,8 @@ Delta <- MDDANOVA%>%
   select(subject,condition,frequency,percept,duration)%>%
   spread(frequency,duration)%>%
   'colnames<-'(c("subject","condition","percept","freq.0", "freq.5","freq.31"))%>%
-  mutate(PR.5 = (freq.5-freq.0),
-         PR.31 = (freq.31-freq.0))
+  mutate(Dlt.5.Hz = (freq.5-freq.0),
+         Dlt.31.Hz = (freq.31-freq.0))
 
 # plot MDD  ----
 MDDANOVA%>%
@@ -74,7 +74,7 @@ MDDANOVA%>%
 ggsave("07.figures/MDD_bar_summary.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
 
 plot_list <- list()
-for(i in 1:max(MDDANOVA$subject)){
+for(i in 2:max(MDDANOVA$subject)){
   g<-MDDANOVA%>%
     filter(subject == i)%>%
     group_by(percept,condition,frequency) %>%
@@ -88,7 +88,7 @@ for(i in 1:max(MDDANOVA$subject)){
           panel.background = element_blank(),
           axis.line = element_line(colour = "black"),
           strip.text.y = element_text(size = 20))
-  plot_list[[i]] <- g
+  plot_list[[i-1]] <- g
 }
 grid.arrange(grobs=plot_list,ncol=2)
 ggsave("07.figures/MDD_bar_summary_sub.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
@@ -96,13 +96,13 @@ ggsave("07.figures/MDD_bar_summary_sub.tiff", units="in", width=5, height=4, dpi
 
 # plot delta  ----
 Delta%>%
-  select(subject,condition,percept,PR.5,PR.31)%>%
+  select(subject,condition,percept,Dlt.5.Hz,Dlt.31.Hz)%>%
   gather(frequency,duration,4:5)%>%
   group_by(percept,condition,frequency) %>%
   summarise_at(vars(duration), list(mean))%>%
-  ggplot(aes(y=duration,x=percept, fill = frequency) )+
+  ggplot(aes(y=duration,x=percept, fill = condition) )+
   geom_bar(stat="identity", position = "dodge2")+
-  facet_grid(. ~ condition)+
+  facet_grid(. ~ frequency)+
   theme_classic()+
   theme(text=element_text(size=16,  family="Helvetica"),
         panel.background = element_blank(),
@@ -114,7 +114,7 @@ plot_list <- list()
 for(i in 1:max(MDDANOVA$subject)){
   g<-Delta%>%
     filter(subject == i)%>%
-    select(subject,condition,percept,PR.5,PR.31)%>%
+    select(subject,condition,percept,Dlt.5,Dlt.31)%>%
     gather(frequency,duration,4:5)%>%
     group_by(percept,condition,frequency) %>%
     summarise_at(vars(duration), list(mean))%>%
@@ -170,7 +170,8 @@ a1m1<-emmeans(a1,pairwise~ percept|condition,adjust="bonf")
 
 # Anova Delta MDD  ----
 x<-Delta%>%
-  select(subject,condition,percept,PR.5,PR.31)%>%
+  filter(percept!="mixed")%>%
+  select(subject,condition,percept,PR.5.Hz,PR.31.Hz)%>%
   gather(frequency,duration,4:5)
 a2 <- aov_ez("subject", "duration",x,   within = c( "percept", "condition","frequency"))
 a2

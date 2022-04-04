@@ -2,8 +2,8 @@
 # 
 # Experiment:     Qualiasoma_binocular_rivalry
 # Programmer:     Thomas Quettier
-# Date:           02/02/2022
-# Description:    Cumulative duration CT analysis
+# Date:           04/04/2022
+# Description:    Predominance PR analysis
 #
 #################################################
 rm(list=ls())
@@ -45,7 +45,7 @@ CT<-rivalry_dataset%>%
 
 # summary CT  ----
 summary<-CT%>%
-   group_by(percept,condition,frequency) %>%
+  group_by(percept,condition,frequency) %>%
   summarise_at(vars(duration), list(mean))%>%
   as.data.frame%>% 
   mutate(duration = duration/1000) 
@@ -78,19 +78,19 @@ ggsave("07.figures/CT_bar_summary.tiff", units="in", width=5, height=4, dpi=200,
 
 plot_list <- list()
 for(i in 2:max(CTANOVA$subject)){
-g<-CTANOVA%>%
+  g<-CTANOVA%>%
     filter(subject == i)%>%
-  group_by(percept,condition,frequency) %>%
-  summarise_at(vars(duration), list(mean))%>%
-  mutate(frequency = as.factor(frequency))%>%
-  ggplot(aes(y=duration,x=percept, fill = frequency) )+
-  geom_bar(stat="identity", position = "dodge2")+
-  facet_grid(. ~ condition)+
-  theme_classic()+
-  theme(text=element_text(size=16,  family="Helvetica"),
-        panel.background = element_blank(),
-        axis.line = element_line(colour = "black"),
-        strip.text.y = element_text(size = 20))
+    group_by(percept,condition,frequency) %>%
+    summarise_at(vars(duration), list(mean))%>%
+    mutate(frequency = as.factor(frequency))%>%
+    ggplot(aes(y=duration,x=percept, fill = frequency) )+
+    geom_bar(stat="identity", position = "dodge2")+
+    facet_grid(. ~ condition)+
+    theme_classic()+
+    theme(text=element_text(size=16,  family="Helvetica"),
+          panel.background = element_blank(),
+          axis.line = element_line(colour = "black"),
+          strip.text.y = element_text(size = 20))
   plot_list[[i-1]] <- g
 }
 grid.arrange(grobs=plot_list,ncol=2)
@@ -117,18 +117,18 @@ plot_list <- list()
 for(i in 1:max(CTANOVA$subject)){
   g<-Delta%>%
     filter(subject == i)%>%
-  select(subject,condition,percept,PR.5,PR.31)%>%
-  gather(frequency,duration,4:5)%>%
-  group_by(percept,condition,frequency) %>%
-  summarise_at(vars(duration), list(mean))%>%
-  ggplot(aes(y=duration,x=percept, fill = frequency) )+
-  geom_bar(stat="identity", position = "dodge2")+
-  facet_grid(. ~ condition)+
-  theme_classic()+
-  theme(text=element_text(size=16,  family="Helvetica"),
-        panel.background = element_blank(),
-        axis.line = element_line(colour = "black"),
-        strip.text.y = element_text(size = 20))
+    select(subject,condition,percept,PR.5,PR.31)%>%
+    gather(frequency,duration,4:5)%>%
+    group_by(percept,condition,frequency) %>%
+    summarise_at(vars(duration), list(mean))%>%
+    ggplot(aes(y=duration,x=percept, fill = frequency) )+
+    geom_bar(stat="identity", position = "dodge2")+
+    facet_grid(. ~ condition)+
+    theme_classic()+
+    theme(text=element_text(size=16,  family="Helvetica"),
+          panel.background = element_blank(),
+          axis.line = element_line(colour = "black"),
+          strip.text.y = element_text(size = 20))
   plot_list[[i]] <- g
 }
 grid.arrange(grobs=plot_list,ncol=2)
@@ -137,9 +137,9 @@ ggsave("07.figures/CT_bar_delta_sub.tiff", units="in", width=5, height=4, dpi=20
 
 # plot 5Hz ----
 Delta%>%
-ggplot(aes(y=freq.0,x=freq.5) )+
+  ggplot(aes(y=freq.0,x=freq.5) )+
   geom_point(aes(  color=percept, shape=condition),size=3)+ 
-#  geom_text(aes(  color=percept, shape=condition,label=subject),size=3)+ 
+  #  geom_text(aes(  color=percept, shape=condition,label=subject),size=3)+ 
   geom_abline(intercept = 0, slope = 1)+
   labs(y="no-stimulation",x="5 hz stimulation")+
   coord_fixed()+
@@ -155,7 +155,7 @@ ggsave("07.figures/CT_5Hz.tiff", units="in", width=5, height=4, dpi=200, compres
 Delta%>%
   ggplot(aes(y=freq.0,x=freq.31) )+
   geom_point(aes(  color=percept, shape=condition),size=3)+ 
-#geom_text(aes(  color=percept, shape=condition,label=subject),size=3)+ 
+  #geom_text(aes(  color=percept, shape=condition,label=subject),size=3)+ 
   geom_abline(intercept = 0, slope = 1)+
   labs(y="no-stimulation",x="31 hz stimulation")+
   coord_fixed()+
