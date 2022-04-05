@@ -29,10 +29,10 @@ Questionnaire<-Questionnaires%>%
   select(id, age,fantasy,personal_distress,perspective_taking,empathic_concern,iri_tot,tas_tot)
 
 #age
-age<-Questionnaire%>%
-  select(id, age)%>%
-  summarise_at(vars(age), list(length,mean,sd))%>%
-  'colnames<-'(c( "n","mean", "Sd"))
+age_pilot<-c(23,23,40,23)
+mean(age_pilot)
+sd(age_pilot)
+
 
 # IRI TAS summary
 IRI<-Questionnaire%>%
