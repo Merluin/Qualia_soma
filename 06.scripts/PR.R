@@ -3,7 +3,7 @@
 # Experiment:     Qualiasoma_binocular_rivalry
 # Programmer:     Thomas Quettier
 # Date:           04/04/2022
-# Description:    Predominance PR analysis
+# Description:    Predominance ratio PR analysis
 #
 #################################################
 rm(list=ls())
@@ -25,7 +25,7 @@ load("04.data/qualia_soma.RData")
 # Cumulative duration CT
 
 # dataset  ----
-CT<-rivalry_dataset%>%
+PR<-rivalry_dataset%>%
   select(subject,block,condition, trial,Hz, key,emotion,  dur)%>%
   filter(trial < 13, subject > 1)%>%
   mutate(percept = ifelse(emotion == "baffi" | emotion == "happy", "target",emotion))%>%
@@ -43,30 +43,39 @@ CT<-rivalry_dataset%>%
 
 
 
-# summary CT  ----
-summary<-CT%>%
+# summary PR  ----
+summary<-PR%>%
   group_by(percept,condition,frequency) %>%
   summarise_at(vars(duration), list(mean))%>%
   as.data.frame%>% 
-  mutate(duration = duration/1000) 
+  spread(percept,duration,fill=0)%>%
+  mutate(PR = (target-neutral)/(neutral+target))
+  
 
 # data ANOVA
-CTANOVA<-CT
+PRANOVA<-PR%>%
+  group_by(subject,percept,condition,frequency) %>%
+  summarise_at(vars(duration), list(mean))%>%
+  as.data.frame%>% 
+  spread(percept,duration,fill=0)%>%
+  mutate(PR = (target-neutral)/(neutral+target))
+
 
 # data predominance
-Delta <- CTANOVA%>%
-  select(subject,condition,frequency,percept,duration)%>%
-  spread(frequency,duration)%>%
-  'colnames<-'(c("subject","condition","percept","freq.0", "freq.5","freq.31"))%>%
-  mutate(PR.5 = (freq.5-freq.0),
-         PR.31 = (freq.31-freq.0))
+Delta <- PRANOVA%>%
+  select(subject,condition,frequency,PR)%>%
+  spread(frequency,PR)%>%
+  'colnames<-'(c("subject","condition","pr.0", "pr.5","pr.31"))%>%
+  mutate(Dlt.5 = (pr.5-pr.0),
+         Dlt.31 = (pr.31-pr.0))
 
 # plot CT  ----
-CTANOVA%>%
-  group_by(percept,condition,frequency) %>%
-  summarise_at(vars(duration), list(mean))%>%
+PRANOVA%>%
+  select(subject,condition,frequency,PR)%>%
+  group_by(condition,frequency) %>%
+  summarise_at(vars(PR), list(mean))%>%
   mutate(frequency = as.factor(frequency))%>%
-  ggplot(aes(y=duration,x=percept, fill = frequency) )+
+  ggplot(aes(y=PR,x=frequency, fill = frequency) )+
   geom_bar(stat="identity", position = "dodge2")+
   facet_grid(. ~ condition)+
   theme_classic()+
@@ -74,16 +83,17 @@ CTANOVA%>%
         panel.background = element_blank(),
         axis.line = element_line(colour = "black"),
         strip.text.y = element_text(size = 20))
-ggsave("07.figures/CT_bar_summary.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
+ggsave("07.figures/PR_bar_summary.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
 
 plot_list <- list()
-for(i in 2:max(CTANOVA$subject)){
-  g<-CTANOVA%>%
+for(i in 2:max(PRANOVA$subject)){
+  g<-PRANOVA%>%
     filter(subject == i)%>%
-    group_by(percept,condition,frequency) %>%
-    summarise_at(vars(duration), list(mean))%>%
+    select(subject,condition,frequency,PR)%>%
+    group_by(condition,frequency) %>%
+    summarise_at(vars(PR), list(mean))%>%
     mutate(frequency = as.factor(frequency))%>%
-    ggplot(aes(y=duration,x=percept, fill = frequency) )+
+    ggplot(aes(y=PR,x=frequency, fill = frequency) )+
     geom_bar(stat="identity", position = "dodge2")+
     facet_grid(. ~ condition)+
     theme_classic()+
@@ -94,16 +104,15 @@ for(i in 2:max(CTANOVA$subject)){
   plot_list[[i-1]] <- g
 }
 grid.arrange(grobs=plot_list,ncol=2)
-ggsave("07.figures/CT_bar_summary_sub.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
+ggsave("07.figures/PR_bar_summary_sub.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
 
-
-# plot delta  ----
+# plot PR  ----
 Delta%>%
-  select(subject,condition,percept,PR.5,PR.31)%>%
-  gather(frequency,duration,4:5)%>%
-  group_by(percept,condition,frequency) %>%
+  select(subject,condition,Dlt.5,Dlt.31)%>%
+  gather(frequency,duration,3:4)%>%
+  group_by(condition,frequency) %>%
   summarise_at(vars(duration), list(mean))%>%
-  ggplot(aes(y=duration,x=percept, fill = frequency) )+
+  ggplot(aes(y=duration,x=frequency, fill = frequency) )+
   geom_bar(stat="identity", position = "dodge2")+
   facet_grid(. ~ condition)+
   theme_classic()+
@@ -111,17 +120,17 @@ Delta%>%
         panel.background = element_blank(),
         axis.line = element_line(colour = "black"),
         strip.text.y = element_text(size = 20))
-ggsave("07.figures/CT_bar_delta.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
+ggsave("07.figures/PR_bar_delta.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
 
 plot_list <- list()
-for(i in 1:max(CTANOVA$subject)){
+for(i in 2:max(PRANOVA$subject)){
   g<-Delta%>%
     filter(subject == i)%>%
-    select(subject,condition,percept,PR.5,PR.31)%>%
-    gather(frequency,duration,4:5)%>%
-    group_by(percept,condition,frequency) %>%
+    select(subject,condition,Dlt.5,Dlt.31)%>%
+    gather(frequency,duration,3:4)%>%
+    group_by(condition,frequency) %>%
     summarise_at(vars(duration), list(mean))%>%
-    ggplot(aes(y=duration,x=percept, fill = frequency) )+
+    ggplot(aes(y=duration,x=frequency, fill = frequency) )+
     geom_bar(stat="identity", position = "dodge2")+
     facet_grid(. ~ condition)+
     theme_classic()+
@@ -129,10 +138,10 @@ for(i in 1:max(CTANOVA$subject)){
           panel.background = element_blank(),
           axis.line = element_line(colour = "black"),
           strip.text.y = element_text(size = 20))
-  plot_list[[i]] <- g
+  plot_list[[i-1]] <- g
 }
 grid.arrange(grobs=plot_list,ncol=2)
-ggsave("07.figures/CT_bar_delta_sub.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
+ggsave("07.figures/PR_bar_delta_sub.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
 
 
 # plot 5Hz ----
@@ -149,7 +158,7 @@ Delta%>%
         panel.background = element_blank(),
         axis.line = element_line(colour = "black"),
         strip.text.y = element_text(size = 20))
-ggsave("07.figures/CT_5Hz.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
+ggsave("07.figures/PR_5Hz.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
 
 # plot 31Hz ----
 Delta%>%
@@ -165,32 +174,32 @@ Delta%>%
         panel.background = element_blank(),
         axis.line = element_line(colour = "black"),
         strip.text.y = element_text(size = 20))
-ggsave("07.figures/CT_31Hz.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
+ggsave("07.figures/PR_31Hz.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
 
 # Anova CT  ----
-a1 <- aov_ez("subject", "duration",CTANOVA,   within = c( "percept", "condition","frequency"))
+a1 <- aov_ez("subject", "PR",PRANOVA,   within = c(  "condition","frequency"))
 a1
 a1m1<-emmeans(a1,pairwise~ percept|condition,adjust="bonf")
 
 # Anova Delta CT  ----
 x<-Delta%>%
-  select(subject,condition,percept,PR.5,PR.31)%>%
-  gather(frequency,duration,4:5)
-a2 <- aov_ez("subject", "duration",x,   within = c( "percept", "condition","frequency"))
+  select(subject,condition,Dlt.5,Dlt.31)%>%
+  gather(frequency,duration,3:4)
+a2 <- aov_ez("subject", "duration",x,   within = c(  "condition","frequency"))
 a2
-a2m1<-emmeans(a1,pairwise~ percept|condition|frequency,adjust="bonf")
+a2m1<-emmeans(a2,pairwise~ condition,adjust="bonf")
 
 
 # results dataset
-anova.ct<-a1
+anova.pr<-a1
 onova.delta <- a2
-posthoc.ct1 <- a1m1
+posthoc.pr1 <- a1m1
 posthoc.delta <- a2m1
-save(anova.ct,
+save(anova.pr,
      onova.delta,
-     posthoc.ct1,
+     posthoc.pr1,
      posthoc.delta,
-     file = "04.data/CT_results.RData")
+     file = "04.data/PR_results.RData")
 
 #################################################
 # 
