@@ -166,26 +166,25 @@ ggsave("07.figures/MDD_31Hz.tiff", units="in", width=5, height=4, dpi=200, compr
 # anova MDD  ----
 a1 <- aov_ez("subject", "duration",MDDANOVA,   within = c( "percept", "condition","frequency"))
 a1
-a1m1<-emmeans(a1,pairwise~ percept|condition,adjust="bonf")
+#a1m1<-emmeans(a1,pairwise~ percept|condition,adjust="bonf")
 
 # Anova Delta MDD  ----
 x<-Delta%>%
-  filter(percept!="mixed")%>%
-  select(subject,condition,percept,PR.5.Hz,PR.31.Hz)%>%
+  select(subject,condition,percept,Dlt.5.Hz,Dlt.31.Hz)%>%
   gather(frequency,duration,4:5)
 a2 <- aov_ez("subject", "duration",x,   within = c( "percept", "condition","frequency"))
 a2
-a2m1<-emmeans(a1,pairwise~ percept|condition|frequency,adjust="bonf")
+#a2m1<-emmeans(a1,pairwise~ percept|condition|frequency,adjust="bonf")
 
 # results dataset
 anova.mdd<-a1
 onova.delta <- a2
-posthoc.mdd <- a1m1
-posthoc.delta <- a2m1
+#posthoc.mdd <- a1m1
+#posthoc.delta <- a2m1
 save(anova.mdd,
      onova.delta,
-     posthoc.mdd,
-     posthoc.delta,
+     #posthoc.mdd,
+     #posthoc.delta,
      file = "04.data/MDD_results.RData")
 
 #################################################

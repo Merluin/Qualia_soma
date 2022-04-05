@@ -179,7 +179,7 @@ ggsave("07.figures/PR_31Hz.tiff", units="in", width=5, height=4, dpi=200, compre
 # Anova CT  ----
 a1 <- aov_ez("subject", "PR",PRANOVA,   within = c(  "condition","frequency"))
 a1
-a1m1<-emmeans(a1,pairwise~ percept|condition,adjust="bonf")
+a1m1<-emmeans(a1,pairwise~ condition,adjust="bonf")
 
 # Anova Delta CT  ----
 x<-Delta%>%

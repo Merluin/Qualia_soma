@@ -178,18 +178,18 @@ x<-Delta%>%
   gather(frequency,duration,4:5)
 a2 <- aov_ez("subject", "duration",x,   within = c( "percept", "condition","frequency"))
 a2
-a2m1<-emmeans(a1,pairwise~ percept|condition|frequency,adjust="bonf")
+#a2m1<-emmeans(a1,pairwise~ percept|condition|frequency,adjust="bonf")
 
 
 # results dataset
 anova.ct<-a1
 onova.delta <- a2
 posthoc.ct1 <- a1m1
-posthoc.delta <- a2m1
+#posthoc.delta <- a2m1
 save(anova.ct,
      onova.delta,
      posthoc.ct1,
-     posthoc.delta,
+     #posthoc.delta,
      file = "04.data/CT_results.RData")
 
 #################################################
