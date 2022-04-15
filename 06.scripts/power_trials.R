@@ -1,11 +1,11 @@
 ###########################################################################
 #
 #  Experiment:  Qualia_soma
-#  Programmer:  QUETTIER THOMAS / Filippo
+#  Programmer:  QUETTIER THOMAS / FILIPPO
 #  Date:        02/2022
-#  Description: sensitive analysis
+#  Description: Power analysis + trials
 #
-#   
+#  https://github.com/Merluin/Qualia_soma
 ###########################################################################
 
 rm(list=ls()) # remove all objects
@@ -17,12 +17,13 @@ library(dplyr)
 library(ggplot2)
 library(stringr)
 library(EMT)
+library(nnet)
 
 # parameters ----------------------------------------------------------------
 
 es <- c(0.2, 0.478)
 sample_size <- c(10, 30, 50)
-trials <- 30 * 12
+trials <- 30 * 24
 nsim <- 10
 Prob <- c(0.5,0.3,0.2) 	
 
@@ -31,15 +32,14 @@ Prob <- c(0.5,0.3,0.2)
 sim <- expand_grid(es, sample_size, trials, nsim = 1:nsim)
 t_list <- vector(mode = "list", length = nrow(sim))
 
-p1 <- data.frame(cbind(Var1 = 1:3,Prob)) 
 
 for(i in 1:nrow(sim)){
   
-  g1 <- data.frame(table(sample(1:3, size = sim$sample_size[i], replace = TRUE, prob = Prob)))
-  g1 <- merge(p1, g1, by = "Var1",all = TRUE)
-  g1[is.na(g1)] <- 0
+  g1 <- sample(1:3, size = sim$sample_size[i]*trials, replace = TRUE, prob = Prob)
+  multinom(test ~ 1)
+  table(test)
   
-  t_list[[i]] <- multinomial.test(g1$Freq, g1$Prob)
+  #t_list[[i]] <- multinomial.test(g1$Freq, g1$Prob)
 }
 
 sim$t_list <- t_list
