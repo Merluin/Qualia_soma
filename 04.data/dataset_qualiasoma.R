@@ -1,7 +1,7 @@
 
 ###########################################################################
 #
-#  Experiment:  Qualia_soma
+#  Experiment:  Qualiasoma_binocular_rivalry
 #  Programmer:   QUETTIER THOMAS
 #  Date:        01/2022
 #  Description: Generate the dataset from psychopy

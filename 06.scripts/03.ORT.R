@@ -25,6 +25,7 @@ load("04.data/qualia_soma.RData")
 # dataset ----
 ORT<-onset_dataset%>%
   drop_na()%>%
+  filter(subject>1)%>%
   select(subject, condition,stimulation, onset, initial_percept)%>%
   'colnames<-'(c("subject","condition", "stimulation", "onset", "initial_percept"))%>%
   group_by(subject, condition,stimulation, initial_percept)%>%
@@ -53,10 +54,11 @@ ORTANOVA<-ORT%>%
   mutate(onset = log(onset))
 
 plot <- ORTANOVA%>%
-  filter(onset >= 0)%>%
+  filter(onset >= 0, initial_percept != "mixed")%>%
   select(subject,condition,stimulation,initial_percept,onset)%>%
-  spread(stimulation,onset,fill=0)%>%
-  'colnames<-'(c("subject","condition","percept","freq.0", "freq.5","freq.31"))
+  spread(stimulation,onset)%>%
+  'colnames<-'(c("subject","condition","percept","freq.0", "freq.5","freq.31"))%>%
+  na.omit()
 
 
 
@@ -67,9 +69,9 @@ plot%>%
   geom_point(aes(  color=percept, shape=condition),size=3)+ 
   #  geom_text(aes(  color=percept, shape=condition,label=subject),size=3)+ 
   geom_abline(intercept = 0, slope = 1)+
-  labs(y="no-stimulation",x="5 hz stimulation")+
+  labs(y="No-stimulation",x="5 Hz stimulation")+
   coord_fixed()+
-  expand_limits( y=c(0,12),x=c(0,12))+
+  expand_limits( y=c(1.5,2.5),x=c(1.5,2.5))+
   theme_classic()+
   theme(text=element_text(size=16,  family="Helvetica"),
         panel.background = element_blank(),
@@ -83,9 +85,9 @@ plot%>%
   geom_point(aes(  color=percept, shape=condition),size=3)+ 
   #  geom_text(aes(  color=percept, shape=condition,label=subject),size=3)+ 
   geom_abline(intercept = 0, slope = 1)+
-  labs(y="no-stimulation",x="31 hz stimulation")+
+  labs(y="No-stimulation",x="31 Hz stimulation")+
   coord_fixed()+
-  expand_limits( y=c(0,12),x=c(0,12))+
+  expand_limits( y=c(1.5,2.5),x=c(1.5,2.5))+
   theme_classic()+
   theme(text=element_text(size=16,  family="Helvetica"),
         panel.background = element_blank(),
@@ -96,8 +98,14 @@ ggsave("07.figures/ORT_31Hz.tiff", units="in", width=5, height=4, dpi=200, compr
 
 ORTANOVA<-ORTANOVA
 # Anova ORT ----
+ORTcontrol<-ORTANOVA%>%
+  filter(condition == "control",stimulation != 31)
+ORTemotion<-ORTANOVA%>%
+  filter(condition == "emotion",stimulation != 31)
 
 a1<-aov_ez("subject", "onset", ORTANOVA,  within = c("condition","stimulation", "initial_percept"))
+a2<-aov_ez("subject", "onset", ORTemotion,  within = c("stimulation", "initial_percept"))
+a3<-aov_ez("subject", "onset", ORTcontrol,  within = c("stimulation", "initial_percept"))
 
 # results dataset
 anova.ORT<-a1

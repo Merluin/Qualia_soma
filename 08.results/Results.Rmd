@@ -9,10 +9,29 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-library(tiff)
+
 library(grid)
 library(knitr)
+library(ggplot2)
+library(lme4)
+options(kableExtra.latex.load_packages = FALSE)
+library(kableExtra)
+library(corrplot)
+library(ggcorrplot)
+library(RColorBrewer)
+library(xtable)
+library(fmsb)
+library(ggridges)
+library(formattable)
+library(dplyr)
+library(afex)
+library(tidyverse)
+library(lsmeans)
+library(gridExtra)
+library(schoRsch)
+library(ggpirate)
 
+load("../04.data/CT_results.RData")
 ```
 
 ## R Markdown
@@ -32,6 +51,8 @@ include_graphics("../07.figures/CT_31Hz.png", error = FALSE)
 include_graphics("../07.figures/CT_bar_summary.png", error = FALSE)
 ```
 
-```{r CTbarsub, echo=FALSE, out.width = "90%",fig.cap="\\label{fig:CTbarsub}CT BAR sub"}
-include_graphics("../07.figures/CT_bar_summary_sub.png", error = FALSE)
+```{r tables-ct}
+
+knitr::kable(nice(anova.ct))
+
 ```

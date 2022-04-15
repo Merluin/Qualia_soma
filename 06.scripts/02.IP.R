@@ -1,6 +1,6 @@
 #################################################
 # 
-# Experiment:     tidbitting chicks
+# Experiment:     Qualiasoma_binocular_rivalry
 # Programmer:     Thomas Quettier
 # Date:           22/09/2020
 # Description:    spontaneous choice analysis
@@ -14,12 +14,13 @@ library(tidyverse)
 library(lme4)
 library(broom.mixed)
 
-load("04.data_preprocessing/qualia_soma.RData")
+load("04.data/qualia_soma.RData")
 
 
 # Setting the factors reference level
 
 onset_dataset <- onset_dataset %>%
+  filter(subject>1)%>%
   drop_na(initial_percept) %>% 
   mutate(initial_percept = factor(initial_percept),
          stimulation = factor(stimulation)) %>% 

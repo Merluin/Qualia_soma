@@ -28,6 +28,7 @@ load("04.data/qualia_soma.RData")
 
 
 DSV<-valuation_dataset%>%
+  select(subject>1)%>%
   group_by(frequency,emotion )%>%
   summarise_at(vars(valence,arousal), list(mean,sd))%>%
   mutate_if(is.numeric, round,digits=3)%>%

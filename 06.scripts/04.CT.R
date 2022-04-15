@@ -141,7 +141,7 @@ ggplot(aes(y=freq.0,x=freq.5) )+
   geom_point(aes(  color=percept, shape=condition),size=3)+ 
 #  geom_text(aes(  color=percept, shape=condition,label=subject),size=3)+ 
   geom_abline(intercept = 0, slope = 1)+
-  labs(y="no-stimulation",x="5 hz stimulation")+
+  labs(y="No-stimulation",x="5 Hz stimulation")+
   coord_fixed()+
   expand_limits( y=c(2000,30000),x=c(2000,30000))+
   theme_classic()+
@@ -157,7 +157,7 @@ Delta%>%
   geom_point(aes(  color=percept, shape=condition),size=3)+ 
 #geom_text(aes(  color=percept, shape=condition,label=subject),size=3)+ 
   geom_abline(intercept = 0, slope = 1)+
-  labs(y="no-stimulation",x="31 hz stimulation")+
+  labs(y="No-stimulation",x="31 Hz stimulation")+
   coord_fixed()+
   expand_limits( y=c(2000,30000),x=c(2000,30000))+
   theme_classic()+
