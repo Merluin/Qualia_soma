@@ -10,7 +10,7 @@ library(pwr)
 
 ###Parameters ----
 effect<- 0.478 # medium effect
-directedeffect = "greater"
+directedeffect = "two.sided"
 
 ###Test ----
 pwr.t.test( d = effect, power = 0.90, sig.level = 0.05 , type = "paired", alternative = directedeffect)
