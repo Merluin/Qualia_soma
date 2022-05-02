@@ -53,6 +53,11 @@ for(i in 1:nrow(sim)){
   
   # extract p-value
   p_value[i] <- get_p_value(fit)
+  
+  save(i,
+     sim_i,
+     p_value,
+     file = "04.data/temp.RData")
 }
 
 
@@ -64,10 +69,7 @@ sim <- sim %>%
   group_by(nsample, ntrials, b1, tau_id) %>% # all sim conditions
   summarise(power = mean(p_value < 0.05)) # calculate power
 
-save(sim,
-     sim_i,
-     p_value,
-     file = "04.data/Power_log.RData")
+
 # Plotting ----------------------------------------------------------------
 sim%>%
   filter(b1== 0.3)%>%
