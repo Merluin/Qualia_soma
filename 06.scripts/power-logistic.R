@@ -2,6 +2,7 @@
 
 library(tidyverse)
 library(lme4)
+library(ggplot2)
 
 # Functions ---------------------------------------------------------------
 
@@ -14,8 +15,8 @@ get_p_value <- function(fit){
 
 set.seed(2022)
 
-nsample <- seq(40, 80, 10)
-ntrials <- seq(12, 120, 10)
+nsample <- c(30, 35, 40, 45, 50)
+ntrials <- c(12, 24, 36,  48, 60)
 b0 <- qlogis(0.5) # probability of happy free. You set the probability but the model want the logit
 b1 <- c(0.3, 0.7, 1.4) # log odds ratio for the conversion to cohen's d see https://www.escal.site/ ~ 0.2, 0.5, 0.8
 cond <- c("free", "stimulated")
@@ -64,7 +65,19 @@ sim <- sim %>%
   summarise(power = mean(p_value < 0.05)) # calculate power
 
 save(sim,
+     sim_i,
+     p_value,
      file = "04.data/Power_log.RData")
 # Plotting ----------------------------------------------------------------
+sim%>%
+  filter(b1== 0.3)%>%
+  group_by(b1, nsample, ntrials) %>% 
+  summarise(power = mean(power)) %>% 
+  ggplot(aes(x=nsample, y=power, color=as.factor(ntrials)))+
+  geom_point(size = 3) +
+  geom_line()+
+  facet_wrap(~b1)
+
+
 
 # ...
