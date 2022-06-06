@@ -5,7 +5,7 @@ library(doSNOW)
 
 # Functions ---------------------------------------------------------------
 
-source("funs.R")
+source("BFDA-simulation/funs.R")
 
 # Setup Simulation --------------------------------------------------------
 
