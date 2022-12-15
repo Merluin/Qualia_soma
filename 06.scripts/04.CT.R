@@ -17,6 +17,7 @@ library(afex)
 library(hrbrthemes)
 library(emmeans)
 library(gridExtra)
+library(faux)
 
 ## loading data ----
 
@@ -62,6 +63,8 @@ Delta <- CTANOVA%>%
          PR.31 = (freq.31-freq.0))
 
 # plot CT  ----
+
+
 CTANOVA%>%
   group_by(percept,condition,frequency) %>%
   summarise_at(vars(duration), list(mean))%>%
@@ -133,6 +136,9 @@ for(i in 1:max(CTANOVA$subject)){
 }
 grid.arrange(grobs=plot_list,ncol=2)
 ggsave("07.figures/CT_bar_delta_sub.tiff", units="in", width=5, height=4, dpi=200, compression = 'lzw')
+
+
+
 
 
 # plot 5Hz ----
