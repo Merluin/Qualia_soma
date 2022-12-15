@@ -20,66 +20,141 @@ library(BFDA)
 
 ## loading data ----
 
-load("04.data_preprocessing/BFDA.RData")
+load("04.data/BFDA.RData")
 
 
-## parametres ----
 
-ESH1          <-    0.478 #we can also provide a vector; rnorm(100000, 0.5, 0.1)
-ESH0          <-    0
 
-Type          <-    "t.paired" #expected.ES has to be provided as Cohen’s d
+# The general workflow
+
+# 1) Simulate many hypothetical studies, both under H1 and under H0, using the function BFDA.sim
+# 2) Analyze the simulated studies, using the function BFDA.analyze
+# 3) Plot the simulated studies (plot, SSD, ...)
+# ref: https://rawgit.com/nicebread/BFDA/master/package/doc/BFDA_manual.html
+
+## 1) Simulation -------------------
+# parametres
+
+ESH1          <-   c(0,0.2,0.3,0.5)# possible effect size (cohen's dz)
+
+Type          <-    "t.paired" #expected.ES has to be provided as Cohen d
 Alternative   <-    "greater"
 
 Prior         <-    list("Cauchy",list(prior.location = 0,prior.scale = sqrt(2)/2)) #prior distribution for t-tests
-Design        <-    "sequential" # otherwise fixed-N 
+Design        <-    "sequential" 
 
-nmax          <-    300 #maximum sample size
-nmin          <-    20 #initial sample size
+nmax          <-    140 #maximum sample size
+nmin          <-    40 #initial sample size
 
-Boundary      <-    6 # 6 is required by cortex
+Boundary      <-    6 # 6 is required by journal (BF 1/6, 6)
 
 rep           <-    10000
 Verbose       <-    TRUE 
-Cores         <-    11
-Stepsize      <-    10 #The number of observations added to the sample in each step of a sequential process
+Cores         <-    8
+Stepsize      <-    20 #The number of observations added to the sample in each step of a sequential process
 
 
-## Simulation, both under H1 and under H0  ----
-# SIMULATION https://rawgit.com/nicebread/BFDA/master/package/doc/BFDA_manual.html
-
-sim.H1 <- BFDA.sim(expected.ES = ESH1, type = Type, prior = Prior, design = Design,
-                   n.max = nmax, alternative = Alternative,boundary = Inf, 
-                   B = rep,verbose = Verbose, cores = Cores,stepsize = Stepsize)
-
-sim.H0 <- BFDA.sim(expected.ES = ESH0, type = Type, prior = Prior, design = Design,
-                   n.max = nmax, alternative = Alternative,boundary = Inf, 
-                   B = rep,verbose = Verbose, cores = Cores,stepsize = Stepsize) 
-
-
-## Analyze the simulated data ----
-
-nlz.H1 <- BFDA.analyze(sim.H1, design = Design, n.min = nmin,
-                       n.max = nmax, boundary = Boundary) 
-
-nlz.H0 <- BFDA.analyze(sim.H0,design = Design, n.min = nmin,
-                       n.max = nmax, boundary = Boundary)
+sim_list<-lapply(ESH1, function(es){
+  es<-BFDA.sim(expected.ES = es, 
+               type = Type, 
+               prior = Prior, 
+               design = Design,
+               n.max = nmax, 
+               n.min = nmin,
+               alternative = Alternative,
+               boundary = Inf, 
+               B = rep,verbose = Verbose, cores = Cores,stepsize = Stepsize)})
 
 
 
-## Plots ----
+## 2) Analyze the simulated data ----
 
-plot(sim.H1, n.min=nmin, n.max=nmax, boundary=c(1/Boundary, Boundary))
-plot(sim.H0, n.min=nmin, n.max=nmax, boundary=c(1/Boundary, Boundary), forH1 = FALSE)
+nlz_list<-lapply(sim_list, function(sim){
+  BFDA.analyze(sim, design = Design, n.min = nmin,
+               n.max = nmax, boundary = Boundary) })
 
-SSD(sim.H1, power=.90, boundary=c(1/Boundary, Boundary))
-SSD(sim.H0, alpha=.02, boundary=c(1/Boundary, Boundary))
+H0<-nlz_list[[1]]
+H1_2<-nlz_list[[2]]
+H1_3<-nlz_list[[3]]
+H1_5<-nlz_list[[4]]
+
+
+## 3) Plots ----
+
+H0<-sim_list[[1]]
+H1_2<-sim_list[[2]]
+H1_3<-sim_list[[3]]
+H1_5<-sim_list[[4]]
+
+plot(H1_3, n.min=nmin, n.max=nmax, boundary=c(1/Boundary, Boundary))
+plot(H0, n.min=nmin, n.max=nmax, boundary=c(1/Boundary, Boundary), forH1 = FALSE)
+
+SSD(H1_3, power=.80, boundary=c(1/Boundary, Boundary))
+SSD(H1_3, alpha=.02, boundary=c(1/Boundary, Boundary))
+
+
+# from BFDA.analyse script  
+data_plot <- data.frame(matrix(nrow = 24, ncol = 4))
+colnames(data_plot) = c("n","es","h1","h0")
+r<-1
+for(i in 1:4){
+  for(j in 1:6){
+    nb <- c(40,60,80,100,120,140) 
+    es <- c(0,0.2,0.3,0.5)
+    
+    sim<-sim_list[[i]]$sim%>%
+      filter(n <= nb[j])
+    # reduce to *first* break of a boundary
+    boundary.hit <- sim%>% group_by(id) %>%
+      filter(logBF>=log(6) | logBF<=-log(6)) %>%
+      filter(row_number()==1) %>% 
+      ungroup()	%>%
+      mutate(hitCondition = "boundary",
+             all.traj.n = length(unique(id)))
+    
+    boundary.upper.traj.n <- length(unique(boundary.hit$id[boundary.hit$logBF>0]))
+    boundary.lower.traj.n <- length(unique(boundary.hit$id[boundary.hit$logBF<0]))
+    
+    all.traj.n <- length(unique(sim$id))
+    
+    upper.hit.frac <- boundary.upper.traj.n/all.traj.n
+    lower.hit.frac <- boundary.lower.traj.n/all.traj.n
+    
+    data_plot[r,1]<- nb[j]
+    data_plot[r,2]<- es[i]
+    data_plot[r,3]<- upper.hit.frac
+    data_plot[r,4]<- lower.hit.frac
+    
+    r <- r+1
+  }
+}
+
+
+plot<-data_plot%>%
+  mutate(es = case_when( es == 0 ~"Cohen's da = 0",
+                         es == 0.2 ~"Cohen's da = 0.2",
+                         es == 0.3 ~"Cohen's da = 0.3",
+                         es == 0.5 ~"Cohen's da = 0.5"))%>%
+  gather("Hypothesis","percent",c(h1,h0))
+
+
+plot%>%
+  ggplot(aes(x=n, y= percent, color = Hypothesis, shape = Hypothesis))+
+  geom_point(size = 3)+
+  geom_line()+
+  facet_grid(.~es)+
+  theme(text=element_text(size=16,  family="Arial"),
+        axis.line = element_line(colour = "black"),
+        legend.position="bottom")+
+  xlab("Sample size")+
+  ylab("Studies terminating at a boundary (%)")
+
 
 
 
 ##save data ---
 
-save(sim.H1,sim.H0,nlz.H1,nlz.H0,file="04.data_preprocessing/BFDA.RData")
+save(sim_list,nlz_list,data_plot,plot,file="04.data/BFDA.RData")
 
 #################################################
 # 
