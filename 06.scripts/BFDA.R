@@ -35,7 +35,7 @@ load("04.data/BFDA.RData")
 ## 1) Simulation -------------------
 # parametres
 
-ESH1          <-   c(0,0.2,0.3,0.5)# possible effect size (cohen's dz)
+ESH1          <-   c(0,0.2,0.4,0.5)# possible effect size (cohen's dz)
 
 Type          <-    "t.paired" #expected.ES has to be provided as Cohen d
 Alternative   <-    "greater"
@@ -43,8 +43,8 @@ Alternative   <-    "greater"
 Prior         <-    list("Cauchy",list(prior.location = 0,prior.scale = sqrt(2)/2)) #prior distribution for t-tests
 Design        <-    "sequential" 
 
-nmax          <-    140 #maximum sample size
-nmin          <-    40 #initial sample size
+nmax          <-    120 #maximum sample size
+nmin          <-    60 #initial sample size
 
 Boundary      <-    6 # 6 is required by journal (BF 1/6, 6)
 
@@ -75,32 +75,32 @@ nlz_list<-lapply(sim_list, function(sim){
 
 H0<-nlz_list[[1]]
 H1_2<-nlz_list[[2]]
-H1_3<-nlz_list[[3]]
+H1_4<-nlz_list[[3]]
 H1_5<-nlz_list[[4]]
 
 
 ## 3) Plots ----
 
-H0<-sim_list[[1]]
-H1_2<-sim_list[[2]]
-H1_3<-sim_list[[3]]
-H1_5<-sim_list[[4]]
+SH0<-sim_list[[1]]
+SH1_2<-sim_list[[2]]
+SH1_4<-sim_list[[3]]
+SH1_5<-sim_list[[4]]
 
-plot(H1_3, n.min=nmin, n.max=nmax, boundary=c(1/Boundary, Boundary))
-plot(H0, n.min=nmin, n.max=nmax, boundary=c(1/Boundary, Boundary), forH1 = FALSE)
+plot(SH1_$, n.min=nmin, n.max=nmax, boundary=c(1/Boundary, Boundary))
+plot(SH0, n.min=nmin, n.max=nmax, boundary=c(1/Boundary, Boundary), forH1 = FALSE)
 
-SSD(H1_3, power=.80, boundary=c(1/Boundary, Boundary))
-SSD(H1_3, alpha=.02, boundary=c(1/Boundary, Boundary))
+SSD(SH1_4, power=.90, boundary=c(1/Boundary, Boundary))
+SSD(SH0, alpha=.02, boundary=c(1/Boundary, Boundary))
 
 
 # from BFDA.analyse script  
-data_plot <- data.frame(matrix(nrow = 24, ncol = 4))
-colnames(data_plot) = c("n","es","h1","h0")
+data_plot <- data.frame(matrix(nrow = 16, ncol = 4))
+colnames(data_plot) = c("n","es","H1","H0")
 r<-1
 for(i in 1:4){
-  for(j in 1:6){
-    nb <- c(40,60,80,100,120,140) 
-    es <- c(0,0.2,0.3,0.5)
+  for(j in 1:4){
+    nb <- c(60,80,100,120) 
+    es <- c(0,0.2,0.4,0.5)
     
     sim<-sim_list[[i]]$sim%>%
       filter(n <= nb[j])
@@ -133,9 +133,9 @@ for(i in 1:4){
 plot<-data_plot%>%
   mutate(es = case_when( es == 0 ~"Cohen's da = 0",
                          es == 0.2 ~"Cohen's da = 0.2",
-                         es == 0.3 ~"Cohen's da = 0.3",
+                         es == 0.4 ~"Cohen's da = 0.4",
                          es == 0.5 ~"Cohen's da = 0.5"))%>%
-  gather("Hypothesis","percent",c(h1,h0))
+  gather("Hypothesis","percent",c(H1,H0))
 
 
 plot%>%
