@@ -55,7 +55,7 @@ Stepsize      <-    20 #The number of observations added to the sample in each s
 
 
 sim_list<-lapply(ESH1, function(es){
-  es<-BFDA.sim(expected.ES = es, 
+  es<-BFDA.sim(expected.ES = es, # BFDA simulation
                type = Type, 
                prior = Prior, 
                design = Design,
@@ -70,22 +70,25 @@ sim_list<-lapply(ESH1, function(es){
 ## 2) Analyze the simulated data ----
 
 nlz_list<-lapply(sim_list, function(sim){
-  BFDA.analyze(sim, design = Design, n.min = nmin,
+  BFDA.analyze(sim, design = Design, n.min = nmin, # BFDA analysis
                n.max = nmax, boundary = Boundary) })
 
-H0<-nlz_list[[1]]
-H1_2<-nlz_list[[2]]
-H1_4<-nlz_list[[3]]
-H1_5<-nlz_list[[4]]
+# BFDA analysis outputs 
+H0<-nlz_list[[1]] # H0 output (Es = 0)
+H1_2<-nlz_list[[2]] # H01output (Es = 0.2)
+H1_4<-nlz_list[[3]] # H1 output (Es = 0.4)
+H1_5<-nlz_list[[4]] # H1 output (Es = 0.5)
 
 
 ## 3) Plots ----
 
+# BFDA simulation extracted from simulation list 
 SH0<-sim_list[[1]]
 SH1_2<-sim_list[[2]]
 SH1_4<-sim_list[[3]]
 SH1_5<-sim_list[[4]]
 
+# BFDA plots for H1 when ES = 0.4 and for H0 
 plot(SH1_$, n.min=nmin, n.max=nmax, boundary=c(1/Boundary, Boundary))
 plot(SH0, n.min=nmin, n.max=nmax, boundary=c(1/Boundary, Boundary), forH1 = FALSE)
 
@@ -93,7 +96,8 @@ SSD(SH1_4, power=.90, boundary=c(1/Boundary, Boundary))
 SSD(SH0, alpha=.02, boundary=c(1/Boundary, Boundary))
 
 
-# from BFDA.analyse script  
+# Plot figure 1 of manuscript:
+# method is used from BFDA.analyse package script  
 data_plot <- data.frame(matrix(nrow = 16, ncol = 4))
 colnames(data_plot) = c("n","es","H1","H0")
 r<-1

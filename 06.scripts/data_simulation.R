@@ -17,6 +17,7 @@ library(afex)
 library(hrbrthemes)
 library(emmeans)
 library(gridExtra)
+library(Matrix)
 library(faux)
 
 ## loading data ----
@@ -26,7 +27,7 @@ load("04.data/qualia_soma.RData")
 # pilot dataset 
 pilot<-rivalry_dataset%>%
   select(subject,block,condition, trial,Hz, key,emotion,  dur)%>%
-  filter(trial < 13, subject > 1)%>%
+  filter(trial < 13, subject > 1)%>% # subject 1 is male participant and excluded.
   mutate(percept = ifelse(emotion == "baffi" | emotion == "happy", "target",emotion))%>%
   group_by(subject,block,condition, trial,Hz,percept)%>%
   summarise_at(vars(dur), list(sum))%>%
@@ -46,62 +47,50 @@ pilot<-rivalry_dataset%>%
 nrep <- 10000
 
 ##  cohen's dz from t.test: (happy/stimulation - happy/no_stimulation)-(neutral/stimulation - neutral/no_stimulation) vs. 0 
-
 #data selection to simulate matrix of interest ( happy neutral stimuli)
 flitered_pilot<- pilot%>%
   filter(condition == "emotion", percept != "mixed")%>%
   mutate(percept = ifelse(percept == "target","happy","neutral"))
-original_data<-list(happy5 = flitered_pilot%>%filter(percept == "happy", frequency != 31),
-                    happy31 = flitered_pilot%>%filter(percept == "happy", frequency != 5),
-                    neutral5 = flitered_pilot%>%filter(percept == "neutral", frequency != 31),
-                    neutral31 = flitered_pilot%>%filter(percept == "neutral", frequency != 5))
 
-#data simulation
-simulation_list <- lapply(original_data, function(sim){
-  perceptname <- sim$percept[1]
-  sim%>%
-  mutate(frequency = ifelse(frequency > 0, 1,0))%>%
-  select(subject,frequency,percept,duration)%>%
-  sim_df(
-    n = nrep,
-    within = "frequency",
-    id = "subject",
-    dv = "duration",
-    empirical = FALSE,
-    long = TRUE
-  )%>%
-  'colnames<-'(c("subject","no.stim", "yes.stim"))%>%
-  mutate(differences = no.stim-yes.stim,
-         percept = perceptname)})
+# simulation parameters
+n = 10000
+within = c("percept","frequency")
+id = "subject"
+dv = "duration"
+data <- long2wide(data = flitered_pilot, within = within, dv = dv, id = id)
+mat<-nearPD(cor(data, use = "complete.obs"))
+mat<-mat$mat
 
-# simulated dataset
-simulation_data<- list(full = rbind(simulation_list$happy5,simulation_list$happy31,simulation_list$neutral5,simulation_list$neutral31),
-                       hz5 =  rbind(simulation_list$happy5,simulation_list$neutral5),
-                       hz31 = rbind(simulation_list$happy31,simulation_list$neutral31))
+#data simulation from faux package script.
+sim<-rnorm_multi(
+  n = n,
+  vars = ncol(data),
+  mu = sapply(data, mean, na.rm = TRUE),
+  sd = sapply(data, sd, na.rm = TRUE),
+  r = mat,
+  varnames = names(data)
+)
 
 # matrix reduction for t.test
-diff_list<-lapply(simulation_data, function(sim){
-  sim%>%
-  select(subject,percept,differences)%>%
-  group_by(subject,percept)%>%
-  summarise_at(vars(differences),list(mean))%>%
-  data.frame()%>%
-  spread(percept,differences)%>%
-  mutate(differences = happy-neutral)
-  })
+sim.diff<-sim%>%
+  mutate(diff.neu5 = neutral_5 - neutral_0,
+         diff.neu31 = neutral_31 - neutral_0,
+         diff.hap5 = happy_5 - happy_0,
+         diff.hap31 = happy_31 - happy_0)%>%
+  mutate(diff.5 = diff.hap5 - diff.neu5,
+         diff.31 = diff.hap31 - diff.neu31)%>%
+  select(subject,diff.5,diff.31)
 
 # t.test 
-t_list<-lapply(diff_list, function(diff){
-  t.test(diff$differences~1)
-  })
+t.diff.5 <- t.test(sim.diff$diff.5 ~1)
+t.diff.31 <- t.test(sim.diff$diff.31~1)
 
 # cohen's dz estimation
-dz_list<-lapply(t_list, function(t){
-  t$statistic/sqrt(nrep)
-  })
+t.diff.5$statistic/sqrt(n)
+t.diff.31$statistic/sqrt(n)
 
-##save data ---
-save(simulation_list,simulation_data,diff_list,t_list,dz_list,file="04.data/simulated_data.RData")
+# save data ---
+save(flitered_pilot,sim,sim.diff,t.diff.5,t.diff.31,file="04.data/simulated_data.RData")
 
 #################################################
 # 
