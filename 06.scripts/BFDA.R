@@ -44,7 +44,7 @@ Prior         <-    list("Cauchy",list(prior.location = 0,prior.scale = sqrt(2)/
 Design        <-    "sequential" 
 
 nmax          <-    120 #maximum sample size
-nmin          <-    60 #initial sample size
+nmin          <-    40 #initial sample size
 
 Boundary      <-    6 # 6 is required by journal (BF 1/6, 6)
 
@@ -102,8 +102,8 @@ data_plot <- data.frame(matrix(nrow = 16, ncol = 4))
 colnames(data_plot) = c("n","es","H1","H0")
 r<-1
 for(i in 1:4){
-  for(j in 1:4){
-    nb <- c(60,80,100,120) 
+  for(j in 1:5){
+    nb <- c(40,60,80,100,120) 
     es <- c(0,0.2,0.4,0.5)
     
     sim<-sim_list[[i]]$sim%>%
@@ -135,10 +135,10 @@ for(i in 1:4){
 
 
 plot<-data_plot%>%
-  mutate(es = case_when( es == 0 ~"Cohen's da = 0",
-                         es == 0.2 ~"Cohen's da = 0.2",
-                         es == 0.4 ~"Cohen's da = 0.4",
-                         es == 0.5 ~"Cohen's da = 0.5"))%>%
+  mutate(es = case_when( es == 0 ~"Cohen's dz = 0",
+                         es == 0.2 ~"Cohen's dz = 0.2",
+                         es == 0.4 ~"Cohen's dz = 0.4",
+                         es == 0.5 ~"Cohen's dz = 0.5"))%>%
   gather("Hypothesis","percent",c(H1,H0))
 
 
